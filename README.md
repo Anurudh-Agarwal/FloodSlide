@@ -1,36 +1,62 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# RakshaSetu — Next.js
 
-## Getting Started
-
-First, run the development server:
+## Run it
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open http://localhost:3000
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Architecture
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```
+app/
+  layout.js            Root shell, loads globals.css
+  page.js               "/"          Live area map (home)
+  rescue/page.js         "/rescue"    Rescue team dashboard
+  village/[id]/page.js   "/village/x" Why-is-this-predicted explain view
+  globals.css           All styling, ported from the original prototype
 
-## Learn More
+components/
+  Header.js             Top nav (Helplines / Rescue Dashboard / Report Crisis)
+  Banner.js             Most-severe-village status strip
+  MapView.js             Leaflet map (react-leaflet), dynamically imported
+                          with ssr:false since Leaflet needs `window`
+  ReportModal.js         Crisis report form
+  HelplinesModal.js      Static helpline numbers
+  DemoControls.js        Manual sensor-trigger buttons (prototype only)
 
-To learn more about Next.js, take a look at the following resources:
+lib/
+  store.js               Zustand store — single source of truth for
+                          villages/reports/user location, shared by every
+                          page (this replaces the old single-file `state`
+                          object + renderAll() pattern)
+  constants.js            Seed data: villages, shelters, helplines, colors
+  utils.js                Pure functions: computeState, distanceKm,
+                          explanationText, nearestVillageId
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Why Zustand
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+The original prototype was one HTML file with one global `state` object.
+In Next.js, `/`, `/rescue`, and `/village/[id]` are separate route
+components that mount and unmount independently — they need one shared
+client-side store so a report submitted on the map instantly shows up on
+the rescue dashboard. Zustand keeps that without prop-drilling through
+layouts.
 
-## Deploy on Vercel
+## Why react-leaflet instead of raw Leaflet
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Raw Leaflet is imperative (`marker.setIcon(...)`, manual DOM refs) and
+fights React's declarative rendering model. `react-leaflet` wraps it in
+components (`<Marker>`, `<Circle>`, `<Popup>`) that re-render naturally
+when the Zustand store changes — no manual sync code needed.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Notes
+
+- Needs live internet at runtime to load OpenStreetMap tiles.
+- Geolocation requires HTTPS (or localhost) to work in most browsers.
+- State resets on page refresh (in-memory store, no persistence) — add
+  `zustand/middleware`'s `persist` if you want it to survive reloads.
