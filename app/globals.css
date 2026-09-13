@@ -73,7 +73,9 @@ body {
       transparent 55px,
       var(--body-line) 56px
     );
-  transition: background-color 180ms ease, color 180ms ease;
+  transition:
+    background-color 180ms ease,
+    color 180ms ease;
 }
 
 a {
@@ -145,10 +147,17 @@ button {
   animation: risk-pulse 1.8s ease-in-out infinite;
 }
 @keyframes risk-pulse {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(214, 65, 44, 0.55); }
-  50% { box-shadow: 0 0 0 8px rgba(214, 65, 44, 0); }
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(214, 65, 44, 0.55);
+  }
+  50% {
+    box-shadow: 0 0 0 8px rgba(214, 65, 44, 0);
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .risk-pulse { animation: none; }
+  .risk-pulse {
+    animation: none;
+  }
 }

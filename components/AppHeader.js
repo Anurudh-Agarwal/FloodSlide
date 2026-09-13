@@ -12,7 +12,8 @@ export default function AppHeader() {
 
   useEffect(() => {
     const savedTheme = window.localStorage.getItem("floodslide-theme");
-    const preferredTheme = window.matchMedia("(prefers-color-scheme: light)").matches
+    const preferredTheme = window.matchMedia("(prefers-color-scheme: light)")
+      .matches
       ? "light"
       : "dark";
     const nextTheme = savedTheme || preferredTheme;
@@ -89,7 +90,10 @@ export default function AppHeader() {
         </nav>
       </div>
 
-      <div className="header-actions" style={{ display: "flex", alignItems: "center", gap: 8 }}>
+      <div
+        className="header-actions"
+        style={{ display: "flex", alignItems: "center", gap: 8 }}
+      >
         <button
           onClick={toggleTheme}
           aria-label={`Switch to ${theme === "dark" ? "light" : "dark"} mode`}
