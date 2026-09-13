@@ -1,60 +1,234 @@
-'use client';
+"use client";
 
-import { useRouter, useParams } from 'next/navigation';
-import { useStore } from '@/lib/store';
-import { computeState, explanationText } from '@/lib/utils';
-import { STATE_STYLES } from '@/lib/constants';
+import dynamic from "next/dynamic";
+import Link from "next/link";
+import { notFound } from "next/navigation";
+import { useStore } from "@/store/useStore";
+import RiskBadge from "@/components/RiskBadge";
+import { RISK_META } from "@/data/mockData";
 
-export default function VillageExplainPage() {
-  const router = useRouter();
-  const { id } = useParams();
-  const villages = useStore((s) => s.villages);
-  const v = villages.find((x) => x.id === id);
+const VillageMap = dynamic(() => import("@/components/VillageMap"), { ssr: false });
 
-  if (!v) {
-    return (
-      <main style={{ maxWidth: 1000, margin: '0 auto', padding: 20 }}>
-        <p>Village not found.</p>
-        <button className="backLink" onClick={() => router.push('/')}>← Back to map</button>
-      </main>
-    );
+function SignalRow({ label, value, sub, danger }) {
+  return (
+    <div
+      style={{
+        display: "flex",
+        justifyContent: "space-between",
+        alignItems: "baseline",
+        padding: "10px 0",
+        borderBottom: "1px solid var(--line-soft)",
+      }}
+    >
+      <span style={{ fontSize: 13, color: "var(--text-muted)" }}>{label}</span>
+      <span style={{ textAlign: "right" }}>
+        <span
+          className="mono"
+          style={{ fontSize: 14, fontWeight: 600, color: danger ? "var(--risk-critical)" : "var(--text-primary)" }}
+        >
+          {value}
+        </span>
+        {sub && (
+          <div className="mono" style={{ fontSize: 10.5, color: "var(--text-faint)" }}>
+            {sub}
+          </div>
+        )}
+      </span>
+    </div>
+  );
+}
+
+export default function VillageDetailPage({ params }) {
+  const village = useStore((s) => s.getVillage(params.id));
+  const setVillageStatus = useStore((s) => s.setVillageStatus);
+  const reports = useStore((s) => s.getReportsForVillage(params.id));
+
+  if (!village) {
+    notFound();
   }
 
-  const st = computeState(v);
-  const style = STATE_STYLES[st];
+  const s = village.signals;
+  const meta = RISK_META[village.riskLevel];
 
   return (
-    <main style={{ maxWidth: 1000, margin: '0 auto', padding: 20 }}>
-      <button className="backLink" onClick={() => router.push('/')}>← Back to map</button>
-      <h1>Why is this predicted?</h1>
-      <div style={{ fontSize: 12, color: 'var(--muted)', marginBottom: 16 }}>{v.name}</div>
+    <div style={{ maxWidth: 1040, margin: "0 auto", padding: "20px 24px 60px" }}>
+      <Link href="/" style={{ fontSize: 12.5, color: "var(--text-faint)", textDecoration: "none" }}>
+        ← Back to live map
+      </Link>
 
-      <div className="card" style={{ background: style.bg, border: 'none' }}>
-        <div style={{ fontWeight: 700, color: style.color, marginBottom: 4 }}>Current Status: {style.label}</div>
-        <div style={{ fontSize: 14 }}>{explanationText(st, v.sensorConfidence, v.reports)}</div>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "flex-start",
+          marginTop: 10,
+          marginBottom: 20,
+          flexWrap: "wrap",
+          gap: 12,
+        }}
+      >
+        <div>
+          <h1 style={{ fontFamily: "var(--font-display)", fontSize: 26, margin: 0 }}>
+            {village.name}
+          </h1>
+          <p style={{ fontSize: 13, color: "var(--text-muted)", margin: "4px 0 0" }}>
+            {village.ward} · population {village.population.toLocaleString()} · hazard type: {village.hazardType}
+          </p>
+        </div>
+        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <RiskBadge level={village.riskLevel} />
+          <div style={{ display: "flex", gap: 6 }}>
+            <button
+              onClick={() => setVillageStatus(village.id, "verified")}
+              disabled={village.status === "verified"}
+              style={pillBtn(village.status === "verified", "var(--accent)")}
+            >
+              Mark verified
+            </button>
+            <button
+              onClick={() => setVillageStatus(village.id, "resolved")}
+              disabled={village.status === "resolved"}
+              style={pillBtn(village.status === "resolved", "var(--text-muted)")}
+            >
+              Mark resolved
+            </button>
+          </div>
+        </div>
       </div>
 
-      <h2 style={{ fontSize: 14 }}>Contributing Signals</h2>
-      <div className="signalRow"><span>ℹ️ Sensor Confidence</span><span className="mono">{v.sensorConfidence}%</span></div>
-      <div className="signalRow"><span>ℹ️ Citizen Reports Received</span><span className="mono">{v.reports.length}</span></div>
-      <div className="signalRow"><span>ℹ️ Rescue Team Confirmed</span><span className="mono">{v.rescueConfirmed ? 'Yes' : 'No'}</span></div>
+      <div style={{ display: "grid", gridTemplateColumns: "1.1fr 0.9fr", gap: 20 }}>
+        <div>
+          <section style={cardStyle}>
+            <h2 style={cardTitle}>Why this risk level</h2>
+            <p style={{ fontSize: 12.5, color: "var(--text-muted)", marginTop: 0 }}>
+              {meta.short}. Estimated lead time:{" "}
+              <span className="mono" style={{ color: "var(--text-primary)" }}>
+                {s.leadTimeMin ? `${s.leadTimeMin} min` : "n/a"}
+              </span>
+            </p>
+            <ul style={{ margin: "10px 0 0", paddingLeft: 18, fontSize: 13 }}>
+              {village.keyFactors.map((f, i) => (
+                <li key={i} style={{ marginBottom: 6, color: "var(--text-primary)" }}>
+                  {f}
+                </li>
+              ))}
+            </ul>
+          </section>
 
-      {v.reports.length > 0 && (
-        <>
-          <h2 style={{ fontSize: 14 }}>Citizen Report Log</h2>
-          {v.reports.map((r) => (
-            <div className="reportItem" key={r.id}>
-              {r.photoUrl ? <img className="thumb" src={r.photoUrl} alt="" /> : <div className="thumbPlaceholder">📷</div>}
-              <div>
-                <div style={{ fontWeight: 600, fontSize: 14 }}>{r.category}</div>
-                <div style={{ fontSize: 12, color: 'var(--muted)' }}>{r.time}</div>
-              </div>
+          <section style={cardStyle}>
+            <h2 style={cardTitle}>Signal readings</h2>
+            <SignalRow
+              label="Rainfall (last 3h)"
+              value={`${s.rainfallMm3h} mm`}
+            />
+            <SignalRow
+              label="Soil moisture"
+              value={`${s.soilMoisturePct}%`}
+              danger={s.soilMoisturePct > 85}
+            />
+            <SignalRow
+              label="River level"
+              value={`${s.riverLevelM} m`}
+              sub={`danger mark ${s.riverThresholdM} m`}
+              danger={s.riverLevelM >= s.riverThresholdM}
+            />
+            <SignalRow
+              label="Slope stability index"
+              value={s.slopeStabilityIndex.toFixed(2)}
+              sub="0 = unstable, 1 = stable"
+              danger={s.slopeStabilityIndex < 0.4}
+            />
+            <SignalRow
+              label="Tilt sensor"
+              value={s.tiltSensorAlert ? "ALERT" : "Normal"}
+              danger={s.tiltSensorAlert}
+            />
+          </section>
+
+          <section style={cardStyle}>
+            <h2 style={cardTitle}>Risk history (this session)</h2>
+            <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+              {village.history.map((h, i) => (
+                <div
+                  key={i}
+                  className="mono"
+                  style={{
+                    fontSize: 10.5,
+                    padding: "5px 9px",
+                    borderRadius: 999,
+                    background: `${RISK_META[h.level].color}1f`,
+                    color: RISK_META[h.level].color,
+                    border: `1px solid ${RISK_META[h.level].color}55`,
+                  }}
+                >
+                  {new Date(h.t).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })} · {RISK_META[h.level].label}
+                </div>
+              ))}
             </div>
-          ))}
-        </>
-      )}
+          </section>
 
-      <div className="footnote">This explanation is generated directly from the structured signals above — not an independent AI judgment.</div>
-    </main>
+          {reports.length > 0 && (
+            <section style={cardStyle}>
+              <h2 style={cardTitle}>Community reports here</h2>
+              {reports.map((r) => (
+                <div key={r.id} style={{ padding: "8px 0", borderBottom: "1px solid var(--line-soft)" }}>
+                  <div style={{ fontSize: 12.5, fontWeight: 600 }}>{r.type}</div>
+                  <p style={{ fontSize: 12.5, color: "var(--text-muted)", margin: "2px 0" }}>{r.description}</p>
+                </div>
+              ))}
+            </section>
+          )}
+        </div>
+
+        <div>
+          <section style={{ ...cardStyle, padding: 0, overflow: "hidden", height: 320 }}>
+            <VillageMap villages={[village]} center={[village.lat, village.lng]} height="320px" />
+          </section>
+          <section style={cardStyle}>
+            <h2 style={cardTitle}>Status</h2>
+            <div style={{ fontSize: 12.5, color: "var(--text-muted)" }}>
+              Rescue status:{" "}
+              <span style={{ color: "var(--text-primary)", fontWeight: 500, textTransform: "capitalize" }}>
+                {village.status}
+              </span>
+            </div>
+            <div style={{ fontSize: 12.5, color: "var(--text-muted)", marginTop: 6 }}>
+              Last updated:{" "}
+              <span className="mono" style={{ color: "var(--text-primary)" }}>
+                {new Date(village.lastUpdated).toLocaleString()}
+              </span>
+            </div>
+          </section>
+        </div>
+      </div>
+    </div>
   );
+}
+
+const cardStyle = {
+  background: "var(--bg-panel)",
+  border: "1px solid var(--line)",
+  borderRadius: 10,
+  padding: 18,
+  marginBottom: 16,
+};
+
+const cardTitle = {
+  fontFamily: "var(--font-display)",
+  fontSize: 14.5,
+  margin: "0 0 10px",
+  fontWeight: 600,
+};
+
+function pillBtn(active, color) {
+  return {
+    padding: "7px 12px",
+    borderRadius: 999,
+    fontSize: 12,
+    fontWeight: 500,
+    cursor: active ? "default" : "pointer",
+    border: `1px solid ${active ? color : "var(--line)"}`,
+    background: active ? `${color}22` : "transparent",
+    color: active ? color : "var(--text-muted)",
+  };
 }
