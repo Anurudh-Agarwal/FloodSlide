@@ -70,3 +70,25 @@ from `data/mockData.js`:
 - Wire the "Demo Controls" simulated triggers to real IoT/MQTT ingestion.
 - Replace the display-only helpline modal with real click-to-call / SMS
   integration (e.g. via SACHET, FCM/SMS APIs).
+# ML integration (local development)
+
+Run the real Python model service and Next.js frontend in separate PowerShell
+terminals from the repository root:
+
+```powershell
+# Terminal 1: install once, then start FastAPI
+python -m pip install -r backend/requirements.txt
+python -m uvicorn backend.main:app --reload --port 8000
+```
+
+```powershell
+# Terminal 2: configure and start Next.js
+Copy-Item .env.example .env.local
+npm install
+npm run dev
+```
+
+`FLOOD_MODEL_API_URL` in `.env.local` defaults to `http://127.0.0.1:8000`.
+The browser calls Next.js at `/api/predict`; that route proxies requests to
+FastAPI. The model only supports `Dharali`, `Chositi`, and `Malana`. The seeded
+`kv-*` UI villages remain simulation/demo data and are not mapped to them.

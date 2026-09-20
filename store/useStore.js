@@ -6,6 +6,9 @@ import {
   initialReports,
   RISK_LEVELS,
 } from "@/data/mockData";
+import { translations } from "@/data/translations";
+import { runPredictionPipeline } from "@/lib/predictionPipeline";
+import { ratingFlow, VILLAGE_TERRAIN } from "@/lib/villageTerrain";
 
 let reportCounter = initialReports.length + 1;
 
@@ -13,12 +16,178 @@ function severityRank(level) {
   return RISK_LEVELS.indexOf(level);
 }
 
+const getInitialLang = () => {
+  if (typeof window !== "undefined") {
+    const saved = localStorage.getItem("floodslide-lang");
+    if (saved === "en" || saved === "hi") return saved;
+  }
+  return "en";
+};
+
+const getInitialAuth = () => {
+  if (typeof window !== "undefined") {
+    try {
+      const saved = localStorage.getItem("floodslide-auth");
+      if (saved) return JSON.parse(saved);
+    } catch (e) {
+      console.error(e);
+    }
+  }
+  return {
+    isAuthenticated: false,
+    user: null,
+  };
+};
+
+function withPrediction(village, extras = {}) {
+  const result = runPredictionPipeline({
+    village,
+    overrides: extras.overrides || {},
+    dataMode: extras.dataMode || "simulation",
+    liveFields: extras.liveFields || [],
+  });
+  const lastHist = village.history?.[village.history.length - 1];
+  const history =
+    lastHist?.level === result.riskLevel
+      ? village.history
+      : [...(village.history || []), { t: result.predictedAt, level: result.riskLevel, probability: result.probability }];
+
+  return {
+    ...village,
+    riskLevel: result.riskLevel,
+    riskScore: result.riskScore,
+    lastUpdated: result.predictedAt,
+    keyFactors: result.keyFactors,
+    prediction: result,
+    probabilitySeries: [
+      ...(village.probabilitySeries || []),
+      { t: result.predictedAt, probability: result.probability },
+    ].slice(-40),
+    signals: {
+      ...village.signals,
+      rainfallMm3h: result.inputs.rainfall_mm_3h,
+      rainfallMm24h: result.inputs.rainfall_mm_24h,
+      rainfallMm72h: result.inputs.rainfall_mm_72h,
+      soilMoisturePct: result.inputs.soil_moisture_pct,
+      riverLevelM: result.inputs.river_level_m,
+      riverFlowM3s: result.inputs.river_flow_m3s,
+      tiltSensorAlert: !!result.inputs.tilt_sensor,
+      slopeStabilityIndex: result.inputs.slope_stability_index,
+      leadTimeMin: result.leadTimeMin,
+    },
+    history: (history || []).slice(-16),
+  };
+}
+
+function modelRiskToUiRisk(risk) {
+  if (risk === "HIGH") return "warning";
+  if (risk === "MODERATE") return "watch";
+  return "normal";
+}
+
+function applyMlPrediction(village, result) {
+  const riskLevel = modelRiskToUiRisk(result.risk);
+  const predictedAt = Date.parse(result.as_of) || Date.now();
+  const lastHist = village.history?.[village.history.length - 1];
+  const history =
+    lastHist?.level === riskLevel
+      ? village.history
+      : [...(village.history || []), { t: predictedAt, level: riskLevel, probability: result.probability }];
+
+  return {
+    ...village,
+    riskLevel,
+    riskScore: Math.round(result.probability * 100),
+    lastUpdated: predictedAt,
+    keyFactors: [
+      `Python ML model P(flood_occurred) = ${(result.probability * 100).toFixed(1)}%`,
+      `Model version ${result.model_version}`,
+    ],
+    prediction: {
+      ...result,
+      riskLevel,
+      riskScore: Math.round(result.probability * 100),
+      dataKind: "ml-service",
+      physics: {},
+      leadTimeMin: null,
+      model: { name: "flood_model.joblib", objective: "binary:logistic" },
+    },
+    probabilitySeries: [
+      ...(village.probabilitySeries || []),
+      { t: predictedAt, probability: result.probability },
+    ].slice(-40),
+    history: (history || []).slice(-16),
+  };
+}
+
+function seedVillages() {
+  return initialVillages.map((v) =>
+    withPrediction(
+      { ...v, probabilitySeries: [] },
+      { dataMode: "simulation" }
+    )
+  );
+}
+
 export const useStore = create((set, get) => ({
-  villages: initialVillages,
+  villages: seedVillages(),
   reports: initialReports,
   helplineOpen: false,
+  language: getInitialLang(),
+  auth: getInitialAuth(),
+  authError: null,
+  dataMode: "simulation",
+  liveMeta: { ok: false, source: null, error: null, fetchedAt: null, disclaimer: null },
+  liveBusy: false,
+  simVillageId: "kv-01",
+  modelMetrics: null,
 
-  // ---- derived helpers ----
+  t: (key) => {
+    const lang = get().language;
+    return translations[lang]?.[key] || translations.en[key] || key;
+  },
+
+  setLanguage: (lang) => {
+    if (typeof window !== "undefined") {
+      localStorage.setItem("floodslide-lang", lang);
+    }
+    set({ language: lang });
+  },
+
+  login: ({ username, password, department }) => {
+    if (!username || !password) {
+      set({ authError: "Please enter Officer ID and Password." });
+      return false;
+    }
+    const userObj = {
+      username: username.toUpperCase(),
+      name: username.toUpperCase().includes("SHARMA") ? "Cmdt. R. Sharma" : `Officer ${username}`,
+      agency: department || "National Disaster Management Authority (NDMA)",
+      role: "Field Operational Commander",
+      badgeId: "NDMA-IND-8841",
+      loggedInAt: Date.now(),
+    };
+
+    const authState = {
+      isAuthenticated: true,
+      user: userObj,
+    };
+
+    if (typeof window !== "undefined") {
+      localStorage.setItem("floodslide-auth", JSON.stringify(authState));
+    }
+    set({ auth: authState, authError: null });
+    return true;
+  },
+
+  logout: () => {
+    const authState = { isAuthenticated: false, user: null };
+    if (typeof window !== "undefined") {
+      localStorage.removeItem("floodslide-auth");
+    }
+    set({ auth: authState, authError: null });
+  },
+
   getVillage: (id) => get().villages.find((v) => v.id === id),
 
   getMostSevereVillage: () => {
@@ -32,7 +201,6 @@ export const useStore = create((set, get) => ({
   getReportsForVillage: (villageId) =>
     get().reports.filter((r) => r.villageId === villageId),
 
-  // ---- actions ----
   addReport: ({ villageId, type, description, image, reporterName }) => {
     const report = {
       id: `rep-${String(reportCounter++).padStart(2, "0")}`,
@@ -55,29 +223,199 @@ export const useStore = create((set, get) => ({
     }));
   },
 
-  // Demo-only: simulate a sensor push changing a village's risk level.
-  simulateSensorTrigger: (villageId, riskLevel) => {
+  setSimVillageId: (id) => set({ simVillageId: id }),
+
+  setDataMode: (mode) => {
+    if (mode === "live") {
+      get().refreshLive();
+      return;
+    }
     set((state) => ({
+      dataMode: "simulation",
+      liveMeta: {
+        ...state.liveMeta,
+        ok: false,
+        disclaimer:
+          "Simulation / last-known hydrology. Not live river gauges.",
+      },
+      villages: state.villages.map((v) =>
+        withPrediction(v, { dataMode: "simulation", liveFields: [] })
+      ),
+    }));
+  },
+
+  updateSimulatedSignals: (villageId, patch) => {
+    set((state) => ({
+      dataMode: "simulation",
+      liveMeta: {
+        ...state.liveMeta,
+        ok: false,
+      },
       villages: state.villages.map((v) => {
         if (v.id !== villageId) return v;
-        const bump =
-          riskLevel === "critical"
-            ? 90
-            : riskLevel === "warning"
-            ? 65
-            : riskLevel === "watch"
-            ? 35
-            : 10;
-        return {
-          ...v,
-          riskLevel,
-          riskScore: bump,
-          status: "unverified",
-          lastUpdated: Date.now(),
-          history: [...v.history, { t: Date.now(), level: riskLevel }],
-        };
+        const signals = { ...v.signals, ...patch };
+        if (patch.riverLevelM != null && patch.riverFlowM3s == null) {
+          signals.riverFlowM3s = Number(
+            ratingFlow(patch.riverLevelM, VILLAGE_TERRAIN[v.id]).toFixed(1)
+          );
+        }
+        return withPrediction({ ...v, signals }, { dataMode: "simulation" });
       }),
     }));
+  },
+
+  // Call the real Python model through the same-origin Next.js proxy. Callers
+  // must supply the complete 72-hour, original ML-schema history; the current
+  // fictional seeded villages intentionally have no such history or mapping.
+  requestMlPrediction: async ({ villageId, village_id, as_of, observations }) => {
+    const village = get().getVillage(villageId);
+    if (!village) return { ok: false, error: "Unknown UI village" };
+    if (!village_id) {
+      return { ok: false, error: "No supported model village is configured" };
+    }
+
+    try {
+      const res = await fetch("/api/predict", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ village_id, as_of, observations }),
+      });
+      const result = await res.json();
+      if (!res.ok) {
+        return { ok: false, error: result.detail || result.error || "ML prediction failed" };
+      }
+      set((state) => ({
+        villages: state.villages.map((item) =>
+          item.id === villageId ? applyMlPrediction(item, result) : item
+        ),
+      }));
+      return { ok: true, result };
+    } catch (error) {
+      return {
+        ok: false,
+        error: error instanceof Error ? error.message : "ML prediction request failed",
+      };
+    }
+  },
+
+  // Existing demo control: map a forced risk band onto hydrology, then run the model.
+  simulateSensorTrigger: (villageId, riskLevel) => {
+    const presets = {
+      critical: {
+        rainfallMm3h: 92,
+        rainfallMm24h: 150,
+        rainfallMm72h: 210,
+        soilMoisturePct: 94,
+        riverLevelM: 4.7,
+        tiltSensorAlert: true,
+      },
+      warning: {
+        rainfallMm3h: 58,
+        rainfallMm24h: 96,
+        rainfallMm72h: 140,
+        soilMoisturePct: 84,
+        riverLevelM: 3.3,
+        tiltSensorAlert: false,
+      },
+      watch: {
+        rainfallMm3h: 30,
+        rainfallMm24h: 48,
+        rainfallMm72h: 70,
+        soilMoisturePct: 66,
+        riverLevelM: 1.7,
+        tiltSensorAlert: false,
+      },
+      normal: {
+        rainfallMm3h: 5,
+        rainfallMm24h: 10,
+        rainfallMm72h: 16,
+        soilMoisturePct: 38,
+        riverLevelM: 0.8,
+        tiltSensorAlert: false,
+      },
+    };
+    get().updateSimulatedSignals(villageId, presets[riskLevel] || presets.normal);
+  },
+
+  refreshLive: async () => {
+    set({ liveBusy: true });
+    try {
+      const res = await fetch("/api/live", { cache: "no-store" });
+      const json = await res.json();
+      if (!json.ok) {
+        set((state) => ({
+          liveBusy: false,
+          dataMode: "simulation",
+          liveMeta: {
+            ok: false,
+            source: null,
+            error: json.error || "Live fetch failed",
+            fetchedAt: Date.now(),
+            disclaimer: json.disclaimer,
+          },
+          villages: state.villages.map((v) =>
+            withPrediction(v, { dataMode: "simulation" })
+          ),
+        }));
+        return;
+      }
+      set((state) => ({
+        liveBusy: false,
+        dataMode: "live",
+        liveMeta: {
+          ok: true,
+          source: json.source,
+          error: null,
+          fetchedAt: json.fetchedAt,
+          disclaimer: json.disclaimer,
+        },
+        villages: state.villages.map((v) => {
+          const live = json.villages?.[v.id];
+          if (!live) return withPrediction(v, { dataMode: "live" });
+          const signals = {
+            ...v.signals,
+            rainfallMm3h: live.rainfall_mm_3h,
+            rainfallMm24h: live.rainfall_mm_24h,
+            rainfallMm72h: live.rainfall_mm_72h,
+            soilMoisturePct: live.soil_moisture_pct ?? v.signals.soilMoisturePct,
+            riverLevelM: live.river_level_m,
+            riverFlowM3s: live.river_flow_m3s,
+            tiltSensorAlert: !!live.tilt_sensor,
+          };
+          return withPrediction(
+            { ...v, signals },
+            { dataMode: "live", liveFields: live.liveFields || [] }
+          );
+        }),
+      }));
+    } catch (err) {
+      set((state) => ({
+        liveBusy: false,
+        dataMode: "simulation",
+        liveMeta: {
+          ok: false,
+          source: null,
+          error: err instanceof Error ? err.message : "Network error",
+          fetchedAt: Date.now(),
+          disclaimer:
+            "Live weather could not be reached. Using simulated hydrology.",
+        },
+        villages: state.villages.map((v) =>
+          withPrediction(v, { dataMode: "simulation" })
+        ),
+      }));
+    }
+  },
+
+  loadModelMetrics: async () => {
+    if (get().modelMetrics) return;
+    try {
+      const res = await fetch("/api/model-metrics");
+      const json = await res.json();
+      set({ modelMetrics: json });
+    } catch (e) {
+      console.error(e);
+    }
   },
 
   toggleHelpline: (open) =>

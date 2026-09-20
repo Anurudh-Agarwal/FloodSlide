@@ -7,6 +7,7 @@ const TYPES = ["Flood", "Landslide", "Fire", "Other"];
 
 export default function ReportForm({ villages, onClose }) {
   const addReport = useStore((s) => s.addReport);
+  const t = useStore((s) => s.t);
   const [type, setType] = useState("Flood");
   const [villageId, setVillageId] = useState(villages[0]?.id || "");
   const [description, setDescription] = useState("");
@@ -28,7 +29,7 @@ export default function ReportForm({ villages, onClose }) {
     setSubmitted(true);
     setTimeout(() => {
       onClose();
-    }, 900);
+    }, 1200);
   };
 
   return (
@@ -37,7 +38,8 @@ export default function ReportForm({ villages, onClose }) {
       style={{
         position: "fixed",
         inset: 0,
-        background: "rgba(6, 12, 13, 0.7)",
+        background: "rgba(6, 12, 13, 0.75)",
+        backdropFilter: "blur(4px)",
         zIndex: 900,
         display: "flex",
         alignItems: "center",
@@ -49,16 +51,17 @@ export default function ReportForm({ villages, onClose }) {
         onClick={(e) => e.stopPropagation()}
         onSubmit={handleSubmit}
         style={{
-          width: "min(440px, 100%)",
+          width: "min(460px, 100%)",
           background: "var(--bg-panel-raised)",
           border: "1px solid var(--line)",
-          borderRadius: 10,
-          padding: 22,
+          borderRadius: 12,
+          padding: 24,
+          boxShadow: "0 16px 40px rgba(0,0,0,0.5)",
         }}
       >
         <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
-          <h2 style={{ fontFamily: "var(--font-display)", fontSize: 18, margin: 0 }}>
-            Report an incident
+          <h2 style={{ fontFamily: "var(--font-display)", fontSize: 19, margin: 0, fontWeight: 700 }}>
+            🚨 {t("reportFormTitle")}
           </h2>
           <button
             type="button"
@@ -69,41 +72,45 @@ export default function ReportForm({ villages, onClose }) {
             ✕
           </button>
         </div>
-        <p style={{ fontSize: 12.5, color: "var(--text-muted)", margin: "6px 0 16px" }}>
-          This goes into the shared demo feed the rescue team can see. It does not notify anyone in real life.
+        <p style={{ fontSize: 12.5, color: "var(--text-muted)", margin: "6px 0 16px", lineHeight: 1.4 }}>
+          {t("reportFormSubtitle")}
         </p>
 
         {submitted ? (
-          <div style={{ padding: "20px 0", textAlign: "center", color: "var(--accent)", fontSize: 14, fontWeight: 500 }}>
-            Report submitted.
+          <div style={{ padding: "24px 0", textAlign: "center", color: "var(--accent)", fontSize: 14, fontWeight: 600 }}>
+            ✓ {t("reportSuccess")}
           </div>
         ) : (
           <>
-            <label style={fieldLabel}>Type</label>
+            <label style={fieldLabel}>{t("incidentType")}</label>
             <div style={{ display: "flex", gap: 8, marginBottom: 14 }}>
-              {TYPES.map((t) => (
-                <button
-                  type="button"
-                  key={t}
-                  onClick={() => setType(t)}
-                  style={{
-                    flex: 1,
-                    padding: "8px 0",
-                    borderRadius: 6,
-                    fontSize: 12.5,
-                    fontWeight: 500,
-                    cursor: "pointer",
-                    border: `1px solid ${type === t ? "var(--accent)" : "var(--line)"}`,
-                    background: type === t ? "rgba(79,209,197,0.12)" : "transparent",
-                    color: type === t ? "var(--accent)" : "var(--text-muted)",
-                  }}
-                >
-                  {t}
-                </button>
-              ))}
+              {TYPES.map((typeKey) => {
+                const label =
+                  typeKey === "Flood" ? t("flood") : typeKey === "Landslide" ? t("landslide") : typeKey === "Fire" ? t("fire") : t("other");
+                return (
+                  <button
+                    type="button"
+                    key={typeKey}
+                    onClick={() => setType(typeKey)}
+                    style={{
+                      flex: 1,
+                      padding: "8px 0",
+                      borderRadius: 6,
+                      fontSize: 12.5,
+                      fontWeight: 600,
+                      cursor: "pointer",
+                      border: `1px solid ${type === typeKey ? "var(--accent)" : "var(--line)"}`,
+                      background: type === typeKey ? "rgba(79,209,197,0.15)" : "transparent",
+                      color: type === typeKey ? "var(--accent)" : "var(--text-muted)",
+                    }}
+                  >
+                    {label}
+                  </button>
+                );
+              })}
             </div>
 
-            <label style={fieldLabel}>Nearest village</label>
+            <label style={fieldLabel}>{t("nearestVillage")}</label>
             <select
               value={villageId}
               onChange={(e) => setVillageId(e.target.value)}
@@ -116,17 +123,17 @@ export default function ReportForm({ villages, onClose }) {
               ))}
             </select>
 
-            <label style={{ ...fieldLabel, marginTop: 12 }}>What's happening</label>
+            <label style={{ ...fieldLabel, marginTop: 12 }}>{t("whatsHappening")}</label>
             <textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               required
               rows={3}
-              placeholder="e.g. Water rising near the lower bridge"
+              placeholder={t("placeholderDescription")}
               style={{ ...inputStyle, resize: "vertical", fontFamily: "var(--font-body)" }}
             />
 
-            <label style={{ ...fieldLabel, marginTop: 12 }}>Photo (optional)</label>
+            <label style={{ ...fieldLabel, marginTop: 12 }}>{t("photoAttachment")}</label>
             <input type="file" accept="image/*" onChange={handleImage} style={{ fontSize: 12.5, color: "var(--text-muted)" }} />
             {image && (
               <img
@@ -139,19 +146,19 @@ export default function ReportForm({ villages, onClose }) {
             <button
               type="submit"
               style={{
-                marginTop: 18,
+                marginTop: 20,
                 width: "100%",
-                padding: "11px 0",
-                borderRadius: 7,
+                padding: "12px 0",
+                borderRadius: 8,
                 border: "none",
                 background: "var(--accent)",
                 color: "#0f1a1c",
-                fontWeight: 600,
+                fontWeight: 700,
                 fontSize: 14,
                 cursor: "pointer",
               }}
             >
-              Submit report
+              {t("btnSubmitReport")}
             </button>
           </>
         )}
@@ -163,10 +170,11 @@ export default function ReportForm({ villages, onClose }) {
 const fieldLabel = {
   display: "block",
   fontSize: 11.5,
-  color: "var(--text-faint)",
+  color: "var(--text-muted)",
   marginBottom: 6,
+  fontWeight: 600,
   textTransform: "uppercase",
-  letterSpacing: "0.04em",
+  letterSpacing: "0.03em",
 };
 
 const inputStyle = {

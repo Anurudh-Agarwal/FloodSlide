@@ -6,6 +6,8 @@ import { RISK_META } from "@/data/mockData";
 
 export default function SeverityBanner() {
   const village = useStore((s) => s.getMostSevereVillage());
+  const t = useStore((s) => s.t);
+  const language = useStore((s) => s.language);
 
   if (!village || village.riskLevel === "normal") {
     return (
@@ -16,11 +18,16 @@ export default function SeverityBanner() {
           borderBottom: "1px solid var(--line)",
           fontSize: 13,
           color: "var(--text-muted)",
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
         }}
       >
-        No elevated risk across monitored villages right now.{" "}
-        <span className="mono" style={{ color: "var(--text-faint)" }}>
-          — demo data
+        <span>
+          🟢 {t("noElevatedRisk")}
+        </span>
+        <span className="mono" style={{ fontSize: 11, color: "var(--text-faint)" }}>
+          {t("demoDataNotice")}
         </span>
       </div>
     );
@@ -28,6 +35,11 @@ export default function SeverityBanner() {
 
   const meta = RISK_META[village.riskLevel];
   const isCritical = village.riskLevel === "critical";
+
+  const translatedLabel =
+    language === "hi"
+      ? (village.riskLevel === "critical" ? "अति-गंभीर अलर्ट" : village.riskLevel === "warning" ? "कैचमेंट चेतावनी" : "क्षेत्रीय निगरानी")
+      : meta.label;
 
   return (
     <Link
@@ -37,7 +49,7 @@ export default function SeverityBanner() {
         alignItems: "center",
         gap: 14,
         padding: "12px 20px",
-        background: `${meta.color}14`,
+        background: `${meta.color}18`,
         borderBottom: `1px solid ${meta.color}55`,
         textDecoration: "none",
         color: "var(--text-primary)",
@@ -54,8 +66,8 @@ export default function SeverityBanner() {
         }}
       />
       <span style={{ fontSize: 13.5 }}>
-        <strong style={{ fontWeight: 600 }}>
-          {meta.label}: {village.name}
+        <strong style={{ fontWeight: 700, color: meta.color }}>
+          {translatedLabel}: {village.name}
         </strong>{" "}
         <span style={{ color: "var(--text-muted)" }}>
           ({village.ward}) — {meta.short}
@@ -66,10 +78,11 @@ export default function SeverityBanner() {
         style={{
           marginLeft: "auto",
           fontSize: 12,
-          color: "var(--text-faint)",
+          color: "var(--accent)",
+          fontWeight: 600,
         }}
       >
-        risk score {village.riskScore} · view details →
+        Score {village.riskScore} · {t("btnViewDetails")} →
       </span>
     </Link>
   );

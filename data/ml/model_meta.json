@@ -1,0 +1,77 @@
+{
+  "feature_names": [
+    "rainfall_mm_3h",
+    "rainfall_mm_24h",
+    "rainfall_mm_72h",
+    "soil_moisture_pct",
+    "river_level_m",
+    "river_threshold_m",
+    "river_flow_m3s",
+    "slope_deg",
+    "elevation_m",
+    "twi",
+    "curve_number",
+    "ksat_mm_hr",
+    "distance_to_river_m",
+    "catchment_area_km2",
+    "slope_stability_index",
+    "tilt_sensor",
+    "month",
+    "hour",
+    "infiltration_mm",
+    "runoff_proxy_mm",
+    "scs_runoff_mm",
+    "antecedent_precip_index",
+    "soil_wetness_risk",
+    "terrain_saturation_interaction",
+    "hydrological_load",
+    "excess_stage_m",
+    "slope_runoff_amp",
+    "channel_stress",
+    "storage_deficit",
+    "proximity_load"
+  ],
+  "base_score": 0.5,
+  "metrics": {
+    "train": {
+      "accuracy": 0.9976,
+      "precision": 0.9,
+      "recall": 1.0,
+      "f1": 0.9474,
+      "roc_auc": 1.0,
+      "n": 1260,
+      "positives": 27,
+      "threshold": 0.5
+    },
+    "validation": {
+      "accuracy": 0.9926,
+      "precision": 1.0,
+      "recall": 0.9592,
+      "f1": 0.9792,
+      "roc_auc": 0.9998,
+      "n": 270,
+      "positives": 49,
+      "threshold": 0.5
+    },
+    "test": {
+      "accuracy": 0.9778,
+      "precision": 0.9211,
+      "recall": 0.9211,
+      "f1": 0.9211,
+      "roc_auc": 0.9981,
+      "n": 270,
+      "positives": 38,
+      "threshold": 0.5
+    }
+  },
+  "split": {
+    "strategy": "per-village temporal 70/15/15",
+    "train_rows": 1260,
+    "validation_rows": 270,
+    "test_rows": 270
+  },
+  "label": "flood_occurred",
+  "data_file": "data/ml/synthetic_flood_hourly.csv",
+  "model_file": "data/ml/xgboost_flood.json",
+  "data_kind": "synthetic"
+}
