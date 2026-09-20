@@ -139,7 +139,7 @@ export const useStore = create((set, get) => ({
   dataMode: "simulation",
   liveMeta: { ok: false, source: null, error: null, fetchedAt: null, disclaimer: null },
   liveBusy: false,
-  simVillageId: "kv-01",
+  simVillageId: "dharali",
   modelMetrics: null,
 
   t: (key) => {
@@ -370,22 +370,8 @@ export const useStore = create((set, get) => ({
           disclaimer: json.disclaimer,
         },
         villages: state.villages.map((v) => {
-          const live = json.villages?.[v.id];
-          if (!live) return withPrediction(v, { dataMode: "live" });
-          const signals = {
-            ...v.signals,
-            rainfallMm3h: live.rainfall_mm_3h,
-            rainfallMm24h: live.rainfall_mm_24h,
-            rainfallMm72h: live.rainfall_mm_72h,
-            soilMoisturePct: live.soil_moisture_pct ?? v.signals.soilMoisturePct,
-            riverLevelM: live.river_level_m,
-            riverFlowM3s: live.river_flow_m3s,
-            tiltSensorAlert: !!live.tilt_sensor,
-          };
-          return withPrediction(
-            { ...v, signals },
-            { dataMode: "live", liveFields: live.liveFields || [] }
-          );
+          const prediction = json.predictions?.[v.id];
+          return prediction ? applyMlPrediction(v, prediction) : v;
         }),
       }));
     } catch (err) {

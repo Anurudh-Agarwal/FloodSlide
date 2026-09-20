@@ -9,9 +9,11 @@ from __future__ import annotations
 import hashlib
 import json
 import sys
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Annotated
+from urllib.parse import urlencode
+from urllib.request import urlopen
 
 import joblib
 import pandas as pd
@@ -24,8 +26,10 @@ sys.path.insert(0, str(ML_DIR))
 
 from flood_features import BASE, add_features  # noqa: E402
 
-MODEL_PATH = ML_DIR / "flood_model.joblib"
-CLIMATOLOGY_PATH = ML_DIR / "climatology.joblib"
+# These pickle-compatible artifacts are committed with the service so a Render
+# instance can load the exact model that was tested locally.
+MODEL_PATH = ML_DIR / "flood_model.pkl"
+CLIMATOLOGY_PATH = ML_DIR / "climatology.pkl"
 FEATURES_PATH = ML_DIR / "features.json"
 
 MODEL = joblib.load(MODEL_PATH)
@@ -33,6 +37,11 @@ CLIMATOLOGY = joblib.load(CLIMATOLOGY_PATH)
 FEATURES = json.loads(FEATURES_PATH.read_text(encoding="utf-8"))
 MODEL_VERSION = hashlib.sha256(MODEL_PATH.read_bytes()).hexdigest()[:12]
 SUPPORTED_VILLAGES = {name.lower(): name for name in CLIMATOLOGY}
+VILLAGE_LOCATIONS = {
+    "Dharali": {"latitude": 31.041, "longitude": 78.781},
+    "Chositi": {"latitude": 33.317, "longitude": 75.800},
+    "Malana": {"latitude": 32.117, "longitude": 77.267},
+}
 
 
 class HourlyObservation(BaseModel):
@@ -124,3 +133,45 @@ def create_prediction(payload: PredictionRequest):
             "missing_fields": [],
         },
     }
+
+
+def nasa_power_history(village: str) -> list[dict]:
+    """Fetch the newest complete 72-hour NASA POWER history for a model village."""
+    location = VILLAGE_LOCATIONS[village]
+    end = datetime.now().astimezone().date()
+    start = end - timedelta(days=5)
+    query = urlencode({
+        "parameters": ",".join(BASE), "community": "AG",
+        "longitude": location["longitude"], "latitude": location["latitude"],
+        "start": start.strftime("%Y%m%d"), "end": end.strftime("%Y%m%d"),
+        "format": "JSON", "time-standard": "UTC",
+    })
+    url = f"https://power.larc.nasa.gov/api/temporal/hourly/point?{query}"
+    with urlopen(url, timeout=30) as response:
+        parameters = json.load(response)["properties"]["parameter"]
+    rows = []
+    for key in sorted(parameters[BASE[0]]):
+        values = {name: parameters[name].get(key) for name in BASE}
+        if any(value is None or float(value) <= -999 for value in values.values()):
+            continue
+        timestamp = datetime.strptime(key, "%Y%m%d%H").replace(tzinfo=timezone.utc)
+        rows.append({"timestamp": timestamp.isoformat(), **values})
+    contiguous = []
+    for row in rows:
+        if not contiguous or datetime.fromisoformat(row["timestamp"]) - datetime.fromisoformat(contiguous[-1]["timestamp"]) == timedelta(hours=1):
+            contiguous.append(row)
+        else:
+            contiguous = [row]
+    if len(contiguous) < 72:
+        raise HTTPException(status_code=503, detail="NASA POWER has fewer than 72 complete recent hourly records")
+    return contiguous[-72:]
+
+
+@app.get("/v1/live-predictions")
+def live_predictions():
+    results = {}
+    for village in sorted(CLIMATOLOGY):
+        observations = nasa_power_history(village)
+        payload = PredictionRequest(village_id=village, as_of=observations[-1]["timestamp"], observations=observations)
+        results[village.lower()] = create_prediction(payload)
+    return {"ok": True, "source": "NASA POWER hourly API", "predictions": results}

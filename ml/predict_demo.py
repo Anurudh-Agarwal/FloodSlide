@@ -9,9 +9,9 @@ import json, joblib
 import pandas as pd
 from flood_features import add_features, BASE
 
-_model = joblib.load("flood_model.joblib")
+_model = joblib.load("flood_model.pkl")
 _features = json.load(open("features.json"))
-_clims = joblib.load("climatology.joblib")
+_clims = joblib.load("climatology.pkl")
 
 
 def predict_flood_risk(history_df: pd.DataFrame, village: str) -> dict:
