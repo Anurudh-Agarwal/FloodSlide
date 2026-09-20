@@ -100,17 +100,31 @@ function applyMlPrediction(village, result) {
     riskScore: Math.round(result.probability * 100),
     lastUpdated: predictedAt,
     keyFactors: [
-      `Python ML model P(flood_occurred) = ${(result.probability * 100).toFixed(1)}%`,
-      `Model version ${result.model_version}`,
+      `Fixed weather snapshot: ${result.weather?.rainfall_mm_24h ?? "—"} mm rainfall in the last 24 hours.`,
+      `Fixed demo risk = ${(result.probability * 100).toFixed(1)}% low risk.`,
+      "Demo risk is intentionally separate from live weather; ML integration is pending.",
     ],
     prediction: {
       ...result,
       riskLevel,
       riskScore: Math.round(result.probability * 100),
-      dataKind: "ml-service",
+      dataKind: result.prediction_mode === "fixed-demo" ? "fixed-demo" : "ml-service",
       physics: {},
       leadTimeMin: null,
-      model: { name: "flood_model.joblib", objective: "binary:logistic" },
+      model: result.prediction_mode === "fixed-demo"
+        ? { name: "Fixed demo prediction", objective: "not connected to ML" }
+        : { name: "flood_model.pkl", objective: "binary:logistic" },
+    },
+    signals: {
+      ...village.signals,
+      rainfallMm3h: result.weather?.rainfall_mm_3h ?? 0,
+      rainfallMm24h: result.weather?.rainfall_mm_24h ?? 0,
+      rainfallMm72h: result.weather?.rainfall_mm_72h ?? 0,
+      airTemperatureC: result.weather?.air_temperature_c ?? null,
+      relativeHumidityPct: result.weather?.relative_humidity_pct ?? null,
+      windSpeedMps: result.weather?.wind_speed_mps ?? null,
+      surfacePressureKpa: result.weather?.surface_pressure_kpa ?? null,
+      observationTime: result.weather?.observation_time ?? result.as_of,
     },
     probabilitySeries: [
       ...(village.probabilitySeries || []),
@@ -121,12 +135,9 @@ function applyMlPrediction(village, result) {
 }
 
 function seedVillages() {
-  return initialVillages.map((v) =>
-    withPrediction(
-      { ...v, probabilitySeries: [] },
-      { dataMode: "simulation" }
-    )
-  );
+  // Keep placeholders empty while the live snapshot loads; never present a
+  // client-generated risk score as a real village prediction.
+  return initialVillages.map((v) => ({ ...v, probabilitySeries: [] }));
 }
 
 export const useStore = create((set, get) => ({
@@ -338,6 +349,7 @@ export const useStore = create((set, get) => ({
   },
 
   refreshLive: async () => {
+    if (get().liveBusy) return;
     set({ liveBusy: true });
     try {
       const res = await fetch("/api/live", { cache: "no-store" });
@@ -353,9 +365,7 @@ export const useStore = create((set, get) => ({
             fetchedAt: Date.now(),
             disclaimer: json.disclaimer,
           },
-          villages: state.villages.map((v) =>
-            withPrediction(v, { dataMode: "simulation" })
-          ),
+          villages: state.villages,
         }));
         return;
       }
@@ -368,10 +378,12 @@ export const useStore = create((set, get) => ({
           error: null,
           fetchedAt: json.fetchedAt,
           disclaimer: json.disclaimer,
+          snapshotId: json.snapshot_id,
+          validUntil: json.valid_until,
         },
         villages: state.villages.map((v) => {
           const prediction = json.predictions?.[v.id];
-          return prediction ? applyMlPrediction(v, prediction) : v;
+          return prediction ? applyMlPrediction(v, { ...prediction, snapshot_id: json.snapshot_id }) : v;
         }),
       }));
     } catch (err) {
@@ -386,9 +398,7 @@ export const useStore = create((set, get) => ({
           disclaimer:
             "Live weather could not be reached. Using simulated hydrology.",
         },
-        villages: state.villages.map((v) =>
-          withPrediction(v, { dataMode: "simulation" })
-        ),
+        villages: state.villages,
       }));
     }
   },

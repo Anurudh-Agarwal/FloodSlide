@@ -2,6 +2,7 @@ import { Space_Grotesk, IBM_Plex_Sans, IBM_Plex_Mono } from "next/font/google";
 import "./globals.css";
 import AppHeader from "@/components/AppHeader";
 import HelplineModal from "@/components/HelplineModal";
+import LiveDataLoader from "@/components/LiveDataLoader";
 
 const display = Space_Grotesk({
   subsets: ["latin"],
@@ -37,6 +38,7 @@ export default function RootLayout({ children }) {
         }}
       >
         <AppHeader />
+        <LiveDataLoader />
         <main>{children}</main>
         <HelplineModal />
       </body>

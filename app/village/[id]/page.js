@@ -27,7 +27,8 @@ function SignalRow({ label, value, sub, danger }) {
       <span style={{ fontSize: 13, color: "var(--text-muted)", fontWeight: 500 }}>{label}</span>
       <span style={{ textAlign: "right" }}>
         <span
-          className="mono"
+          key={String(value)}
+          className="mono telemetry-value"
           style={{ fontSize: 14, fontWeight: 700, color: danger ? "var(--risk-critical)" : "var(--text-primary)" }}
         >
           {value}
@@ -40,6 +41,15 @@ function SignalRow({ label, value, sub, danger }) {
       </span>
     </div>
   );
+}
+
+function formatMetric(value, unit) {
+  return Number.isFinite(value) ? `${value}${unit}` : "—";
+}
+
+function formatUpdatedAt(value) {
+  const timestamp = Date.parse(value);
+  return Number.isFinite(timestamp) ? new Date(timestamp).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" }) : "—";
 }
 
 export default function VillageDetailPage({ params }) {
@@ -56,7 +66,9 @@ export default function VillageDetailPage({ params }) {
   }
 
   const s = village.signals;
+  const weather = village.prediction?.weather;
   const meta = RISK_META[village.riskLevel];
+  const liveUpdatedAt = formatUpdatedAt(liveMeta?.fetchedAt);
 
   return (
     <div style={{ maxWidth: 1080, margin: "0 auto", padding: "24px 20px 60px" }}>
@@ -126,7 +138,7 @@ export default function VillageDetailPage({ params }) {
             </p>
             {village.prediction && (
               <p style={{ fontSize: 11.5, color: "var(--text-faint)", marginTop: 0 }}>
-                {t("dataKind")}: {village.prediction.dataKind} · {village.prediction.dataKind === "ml-service" ? "Python ML service" : "XGBoost trained on synthetic rows"}
+                {t("dataKind")}: {village.prediction.dataKind} · {village.prediction.dataKind === "fixed-demo" ? "Fixed demo risk — ML not connected" : "Python ML service"}
               </p>
             )}
             <ul style={{ margin: "12px 0 0", paddingLeft: 18, fontSize: 13, lineHeight: 1.5 }}>
@@ -142,37 +154,36 @@ export default function VillageDetailPage({ params }) {
             <h2 style={cardTitle}>📡 {t("signalReadings")}</h2>
             <SignalRow
               label={t("rainfall")}
-              value={`${s.rainfallMm3h} mm`}
+              value={formatMetric(s.rainfallMm3h, " mm")}
             />
             <SignalRow
-              label={t("soilMoisture")}
-              value={`${s.soilMoisturePct}%`}
-              danger={s.soilMoisturePct > 85}
+              label="Rainfall (last 24h)"
+              value={formatMetric(s.rainfallMm24h, " mm")}
             />
             <SignalRow
-              label={t("riverLevel")}
-              value={`${s.riverLevelM} m`}
-              sub={`${t("dangerMark")} ${s.riverThresholdM} m`}
-              danger={s.riverLevelM >= s.riverThresholdM}
+              label="Rainfall (last 72h)"
+              value={formatMetric(s.rainfallMm72h, " mm")}
             />
             <SignalRow
-              label={t("riverFlow")}
-              value={`${Number(s.riverFlowM3s || 0).toFixed(1)} m³/s`}
+              label="Air temperature"
+              value={weather?.air_temperature_c == null ? "—" : `${weather.air_temperature_c} °C`}
             />
             <SignalRow
-              label={t("slopeStability")}
-              value={s.slopeStabilityIndex.toFixed(2)}
-              sub="0 = unstable, 1 = stable"
-              danger={s.slopeStabilityIndex < 0.4}
+              label="Relative humidity"
+              value={weather?.relative_humidity_pct == null ? "—" : `${weather.relative_humidity_pct}%`}
             />
             <SignalRow
-              label={t("tiltSensor")}
-              value={s.tiltSensorAlert ? t("alertTriggered") : t("normalStatus")}
-              danger={s.tiltSensorAlert}
+              label="Wind speed"
+              value={weather?.wind_speed_mps == null ? "—" : `${weather.wind_speed_mps} m/s`}
             />
+            <SignalRow label="Surface pressure" value={weather?.surface_pressure_kpa == null ? "—" : `${weather.surface_pressure_kpa} kPa`} />
+            <SignalRow label="Observation time (UTC)" value={weather?.observation_time ? new Date(weather.observation_time).toLocaleString() : "—"} />
+            <p style={{ fontSize: 11.5, color: "var(--text-faint)", margin: "12px 0 0" }}>
+              No live river gauge, soil probe, or tilt sensor is connected for these locations.
+            </p>
           </section>
 
-          {village.prediction && (
+          {village.prediction && Object.keys(village.prediction.physics || {}).length > 0 && (
             <section style={cardStyle}>
               <h2 style={cardTitle}>⚗ {t("physicsFeatures")}</h2>
               {Object.entries(village.prediction.physics).map(([k, val]) => (

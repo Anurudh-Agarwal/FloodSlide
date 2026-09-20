@@ -5,7 +5,6 @@ import { useState } from "react";
 import Link from "next/link";
 import { useStore } from "@/store/useStore";
 import SeverityBanner from "@/components/SeverityBanner";
-import DemoControls from "@/components/DemoControls";
 import ReportForm from "@/components/ReportForm";
 import RiskBadge from "@/components/RiskBadge";
 import DataModeBadge from "@/components/DataModeBadge";
@@ -219,7 +218,6 @@ export default function HomePage() {
                 height="440px"
                 onFocusChange={handleFocusChange}
               />
-              <DemoControls villages={villages} />
             </div>
           </div>
 

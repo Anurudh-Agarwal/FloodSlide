@@ -5,7 +5,6 @@ import Link from "next/link";
 import dynamic from "next/dynamic";
 import { useStore } from "@/store/useStore";
 import RiskBadge from "@/components/RiskBadge";
-import DemoControls from "@/components/DemoControls";
 import SimulationPanel from "@/components/SimulationPanel";
 import DataModeBadge from "@/components/DataModeBadge";
 import RiskSparkline from "@/components/RiskSparkline";
@@ -329,13 +328,8 @@ export default function RescueDashboard() {
               </div>
             </div>
 
-            {/* Side Incident Feed & Sensor Demo Controls */}
+            {/* Side Incident Feed */}
             <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-              {/* Demo Controls Embedded Container */}
-              <div style={{ position: "relative" }}>
-                <DemoControls villages={villages} />
-              </div>
-
               {/* Recent Community Reports Feed */}
               <div
                 style={{
