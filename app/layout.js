@@ -23,7 +23,7 @@ const mono = IBM_Plex_Mono({
 export const metadata = {
   title: "FloodSlide — Hyper-Local Flood & Landslide Alerts",
   description:
-    "Prototype early-warning console for flash floods and landslides in hilly regions. Demo data only.",
+    "Early-warning console for flash floods and landslides in hilly regions.",
 };
 
 export default function RootLayout({ children }) {

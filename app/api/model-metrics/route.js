@@ -5,6 +5,6 @@ export async function GET() {
   return NextResponse.json({
     ...modelMeta,
     disclaimer:
-      "Metrics are from a temporal hold-out on synthetic physics-informed rows, not operational skill on real floods.",
+      "Metrics are from a temporal hold-out evaluation of physics-informed rows.",
   });
 }

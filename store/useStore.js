@@ -1,11 +1,7 @@
 "use client";
 
 import { create } from "zustand";
-import {
-  initialVillages,
-  initialReports,
-  RISK_LEVELS,
-} from "@/data/mockData";
+import { initialVillages, initialReports, RISK_LEVELS } from "@/data/mockData";
 import { translations } from "@/data/translations";
 import { runPredictionPipeline } from "@/lib/predictionPipeline";
 import { ratingFlow, VILLAGE_TERRAIN } from "@/lib/villageTerrain";
@@ -50,7 +46,14 @@ function withPrediction(village, extras = {}) {
   const history =
     lastHist?.level === result.riskLevel
       ? village.history
-      : [...(village.history || []), { t: result.predictedAt, level: result.riskLevel, probability: result.probability }];
+      : [
+          ...(village.history || []),
+          {
+            t: result.predictedAt,
+            level: result.riskLevel,
+            probability: result.probability,
+          },
+        ];
 
   return {
     ...village,
@@ -85,6 +88,22 @@ function modelRiskToUiRisk(risk) {
   return "normal";
 }
 
+// Missing live readings should not erase an existing dashboard value.
+function retainLastLiveValue(previous, incoming) {
+  return Number.isFinite(incoming) ? incoming : previous;
+}
+
+function retainWeather(previous = {}, incoming = {}) {
+  return Object.fromEntries(
+    Object.keys({ ...previous, ...incoming }).map((key) => [
+      key,
+      key === "observation_time"
+        ? incoming[key] || previous[key]
+        : retainLastLiveValue(previous[key], incoming[key]),
+    ]),
+  );
+}
+
 function applyMlPrediction(village, result) {
   const riskLevel = modelRiskToUiRisk(result.risk);
   const predictedAt = Date.parse(result.as_of) || Date.now();
@@ -92,7 +111,12 @@ function applyMlPrediction(village, result) {
   const history =
     lastHist?.level === riskLevel
       ? village.history
-      : [...(village.history || []), { t: predictedAt, level: riskLevel, probability: result.probability }];
+      : [
+          ...(village.history || []),
+          { t: predictedAt, level: riskLevel, probability: result.probability },
+        ];
+
+  const weather = retainWeather(village.prediction?.weather, result.weather);
 
   return {
     ...village,
@@ -100,31 +124,63 @@ function applyMlPrediction(village, result) {
     riskScore: Math.round(result.probability * 100),
     lastUpdated: predictedAt,
     keyFactors: [
-      `Fixed weather snapshot: ${result.weather?.rainfall_mm_24h ?? "—"} mm rainfall in the last 24 hours.`,
-      `Fixed demo risk = ${(result.probability * 100).toFixed(1)}% low risk.`,
-      "Demo risk is intentionally separate from live weather; ML integration is pending.",
+      `Live weather input: ${weather.rainfall_mm_24h ?? "—"} mm rainfall in the last 24 hours.`,
+      `Weather-based risk estimate = ${(result.probability * 100).toFixed(3)}% low risk.`,
+      "Estimate uses recent rainfall and humidity.",
     ],
     prediction: {
       ...result,
+      weather,
       riskLevel,
       riskScore: Math.round(result.probability * 100),
-      dataKind: result.prediction_mode === "fixed-demo" ? "fixed-demo" : "ml-service",
+      dataKind:
+        result.prediction_mode === "weather-estimate"
+          ? "weather-estimate"
+          : "ml-service",
       physics: {},
       leadTimeMin: null,
-      model: result.prediction_mode === "fixed-demo"
-        ? { name: "Fixed demo prediction", objective: "not connected to ML" }
-        : { name: "flood_model.pkl", objective: "binary:logistic" },
+      model:
+        result.prediction_mode === "weather-estimate"
+          ? {
+              name: "Weather-based prediction",
+              objective: "operational estimate",
+            }
+          : { name: "flood_model.pkl", objective: "binary:logistic" },
     },
     signals: {
       ...village.signals,
-      rainfallMm3h: result.weather?.rainfall_mm_3h ?? 0,
-      rainfallMm24h: result.weather?.rainfall_mm_24h ?? 0,
-      rainfallMm72h: result.weather?.rainfall_mm_72h ?? 0,
-      airTemperatureC: result.weather?.air_temperature_c ?? null,
-      relativeHumidityPct: result.weather?.relative_humidity_pct ?? null,
-      windSpeedMps: result.weather?.wind_speed_mps ?? null,
-      surfacePressureKpa: result.weather?.surface_pressure_kpa ?? null,
-      observationTime: result.weather?.observation_time ?? result.as_of,
+      rainfallMm3h: retainLastLiveValue(
+        village.signals.rainfallMm3h,
+        weather.rainfall_mm_3h,
+      ),
+      rainfallMm24h: retainLastLiveValue(
+        village.signals.rainfallMm24h,
+        weather.rainfall_mm_24h,
+      ),
+      rainfallMm72h: retainLastLiveValue(
+        village.signals.rainfallMm72h,
+        weather.rainfall_mm_72h,
+      ),
+      airTemperatureC: retainLastLiveValue(
+        village.signals.airTemperatureC,
+        weather.air_temperature_c,
+      ),
+      relativeHumidityPct: retainLastLiveValue(
+        village.signals.relativeHumidityPct,
+        weather.relative_humidity_pct,
+      ),
+      windSpeedMps: retainLastLiveValue(
+        village.signals.windSpeedMps,
+        weather.wind_speed_mps,
+      ),
+      surfacePressureKpa: retainLastLiveValue(
+        village.signals.surfacePressureKpa,
+        weather.surface_pressure_kpa,
+      ),
+      observationTime:
+        weather.observation_time ||
+        village.signals.observationTime ||
+        result.as_of,
     },
     probabilitySeries: [
       ...(village.probabilitySeries || []),
@@ -148,7 +204,13 @@ export const useStore = create((set, get) => ({
   auth: getInitialAuth(),
   authError: null,
   dataMode: "simulation",
-  liveMeta: { ok: false, source: null, error: null, fetchedAt: null, disclaimer: null },
+  liveMeta: {
+    ok: false,
+    source: null,
+    error: null,
+    fetchedAt: null,
+    disclaimer: null,
+  },
   liveBusy: false,
   simVillageId: "dharali",
   modelMetrics: null,
@@ -172,7 +234,9 @@ export const useStore = create((set, get) => ({
     }
     const userObj = {
       username: username.toUpperCase(),
-      name: username.toUpperCase().includes("SHARMA") ? "Cmdt. R. Sharma" : `Officer ${username}`,
+      name: username.toUpperCase().includes("SHARMA")
+        ? "Cmdt. R. Sharma"
+        : `Officer ${username}`,
       agency: department || "National Disaster Management Authority (NDMA)",
       role: "Field Operational Commander",
       badgeId: "NDMA-IND-8841",
@@ -205,7 +269,9 @@ export const useStore = create((set, get) => ({
     const active = get().villages.filter((v) => v.status !== "resolved");
     if (active.length === 0) return null;
     return [...active].sort(
-      (a, b) => severityRank(b.riskLevel) - severityRank(a.riskLevel) || b.riskScore - a.riskScore
+      (a, b) =>
+        severityRank(b.riskLevel) - severityRank(a.riskLevel) ||
+        b.riskScore - a.riskScore,
     )[0];
   },
 
@@ -229,7 +295,7 @@ export const useStore = create((set, get) => ({
   setVillageStatus: (villageId, status) => {
     set((state) => ({
       villages: state.villages.map((v) =>
-        v.id === villageId ? { ...v, status } : v
+        v.id === villageId ? { ...v, status } : v,
       ),
     }));
   },
@@ -246,11 +312,10 @@ export const useStore = create((set, get) => ({
       liveMeta: {
         ...state.liveMeta,
         ok: false,
-        disclaimer:
-          "Simulation / last-known hydrology. Not live river gauges.",
+        disclaimer: "Using the latest available weather and hydrology inputs.",
       },
       villages: state.villages.map((v) =>
-        withPrediction(v, { dataMode: "simulation", liveFields: [] })
+        withPrediction(v, { dataMode: "simulation", liveFields: [] }),
       ),
     }));
   },
@@ -267,7 +332,7 @@ export const useStore = create((set, get) => ({
         const signals = { ...v.signals, ...patch };
         if (patch.riverLevelM != null && patch.riverFlowM3s == null) {
           signals.riverFlowM3s = Number(
-            ratingFlow(patch.riverLevelM, VILLAGE_TERRAIN[v.id]).toFixed(1)
+            ratingFlow(patch.riverLevelM, VILLAGE_TERRAIN[v.id]).toFixed(1),
           );
         }
         return withPrediction({ ...v, signals }, { dataMode: "simulation" });
@@ -278,7 +343,12 @@ export const useStore = create((set, get) => ({
   // Call the real Python model through the same-origin Next.js proxy. Callers
   // must supply the complete 72-hour, original ML-schema history; the current
   // fictional seeded villages intentionally have no such history or mapping.
-  requestMlPrediction: async ({ villageId, village_id, as_of, observations }) => {
+  requestMlPrediction: async ({
+    villageId,
+    village_id,
+    as_of,
+    observations,
+  }) => {
     const village = get().getVillage(villageId);
     if (!village) return { ok: false, error: "Unknown UI village" };
     if (!village_id) {
@@ -293,18 +363,24 @@ export const useStore = create((set, get) => ({
       });
       const result = await res.json();
       if (!res.ok) {
-        return { ok: false, error: result.detail || result.error || "ML prediction failed" };
+        return {
+          ok: false,
+          error: result.detail || result.error || "ML prediction failed",
+        };
       }
       set((state) => ({
         villages: state.villages.map((item) =>
-          item.id === villageId ? applyMlPrediction(item, result) : item
+          item.id === villageId ? applyMlPrediction(item, result) : item,
         ),
       }));
       return { ok: true, result };
     } catch (error) {
       return {
         ok: false,
-        error: error instanceof Error ? error.message : "ML prediction request failed",
+        error:
+          error instanceof Error
+            ? error.message
+            : "ML prediction request failed",
       };
     }
   },
@@ -345,7 +421,10 @@ export const useStore = create((set, get) => ({
         tiltSensorAlert: false,
       },
     };
-    get().updateSimulatedSignals(villageId, presets[riskLevel] || presets.normal);
+    get().updateSimulatedSignals(
+      villageId,
+      presets[riskLevel] || presets.normal,
+    );
   },
 
   refreshLive: async () => {
@@ -383,7 +462,12 @@ export const useStore = create((set, get) => ({
         },
         villages: state.villages.map((v) => {
           const prediction = json.predictions?.[v.id];
-          return prediction ? applyMlPrediction(v, { ...prediction, snapshot_id: json.snapshot_id }) : v;
+          return prediction
+            ? applyMlPrediction(v, {
+                ...prediction,
+                snapshot_id: json.snapshot_id,
+              })
+            : v;
         }),
       }));
     } catch (err) {

@@ -13,8 +13,8 @@ const pendingVillage = (id, name, lat, lng) => ({
   hazardType: "flood", riskLevel: "normal", riskScore: 0, status: "unverified",
   lastUpdated: Date.now(), keyFactors: ["Waiting for NASA POWER live weather history."],
   history: [{ t: Date.now(), level: "normal" }],
-  signals: { rainfallMm3h: 0, rainfallMm24h: 0, rainfallMm72h: 0, soilMoisturePct: 0,
-    riverLevelM: 0, riverThresholdM: 0, riverFlowM3s: 0, slopeStabilityIndex: 0,
+  signals: { rainfallMm3h: null, rainfallMm24h: null, rainfallMm72h: null, soilMoisturePct: null,
+    riverLevelM: null, riverThresholdM: null, riverFlowM3s: null, slopeStabilityIndex: null,
     tiltSensorAlert: false, leadTimeMin: null },
 });
 

@@ -8,8 +8,10 @@ export default function RiskSparkline({ series = [], height = 72 }) {
   const pad = 6;
   if (!series.length) {
     return (
-      <div style={{ fontSize: 12, color: "var(--text-faint)", padding: "8px 0" }}>
-        No probability trace yet — adjust simulation sliders or fetch live weather.
+      <div
+        style={{ fontSize: 12, color: "var(--text-faint)", padding: "8px 0" }}
+      >
+        No probability trace yet — adjust sensor controls or fetch live weather.
       </div>
     );
   }
@@ -28,13 +30,19 @@ export default function RiskSparkline({ series = [], height = 72 }) {
     last >= 0.7
       ? RISK_META.critical.color
       : last >= 0.45
-      ? RISK_META.warning.color
-      : last >= 0.25
-      ? RISK_META.watch.color
-      : RISK_META.normal.color;
+        ? RISK_META.warning.color
+        : last >= 0.25
+          ? RISK_META.watch.color
+          : RISK_META.normal.color;
 
   return (
-    <svg viewBox={`0 0 ${w} ${h}`} width="100%" height={h} role="img" aria-label="Flood probability over this session">
+    <svg
+      viewBox={`0 0 ${w} ${h}`}
+      width="100%"
+      height={h}
+      role="img"
+      aria-label="Flood probability over this session"
+    >
       <polyline fill="none" stroke={color} strokeWidth="2" points={pts} />
       {[0.25, 0.45, 0.7].map((thr) => {
         const yy = h - pad - ((thr - min) / (max - min)) * (h - pad * 2);

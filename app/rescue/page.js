@@ -302,7 +302,7 @@ export default function RescueDashboard() {
                     <RiskBadge level={v.riskLevel} size="sm" />
                     <span className="mono" style={{ fontSize: 13, fontWeight: 600 }}>{v.riskScore}</span>
                     <span className="mono" style={{ fontSize: 12, fontWeight: 600 }}>
-                      {v.prediction ? `${(v.prediction.probability * 100).toFixed(0)}%` : "—"}
+                      {v.prediction ? `${(v.prediction.probability * 100).toFixed(3)}%` : "—"}
                     </span>
                     <span className="mono" style={{ fontSize: 11, color: "var(--text-faint)" }}>
                       {timeAgo(v.lastUpdated)}

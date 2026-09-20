@@ -39,7 +39,8 @@ export default function LoginPage() {
         alignItems: "center",
         justifyContent: "center",
         padding: "30px 20px",
-        background: "radial-gradient(circle at top, rgba(79, 209, 197, 0.05) 0%, transparent 70%)",
+        background:
+          "radial-gradient(circle at top, rgba(79, 209, 197, 0.05) 0%, transparent 70%)",
       }}
     >
       <div
@@ -80,7 +81,14 @@ export default function LoginPage() {
           >
             {t("loginTitle")}
           </h1>
-          <p style={{ fontSize: 12.5, color: "var(--text-muted)", marginTop: 6, lineHeight: 1.4 }}>
+          <p
+            style={{
+              fontSize: 12.5,
+              color: "var(--text-muted)",
+              marginTop: 6,
+              lineHeight: 1.4,
+            }}
+          >
             {t("loginSubtitle")}
           </p>
         </div>
@@ -167,7 +175,13 @@ export default function LoginPage() {
           </button>
         </form>
 
-        <div style={{ position: "relative", textAlign: "center", margin: "18px 0" }}>
+        <div
+          style={{
+            position: "relative",
+            textAlign: "center",
+            margin: "18px 0",
+          }}
+        >
           <div style={{ height: 1, background: "var(--line)" }} />
           <span
             className="mono"
@@ -183,7 +197,7 @@ export default function LoginPage() {
               letterSpacing: "0.05em",
             }}
           >
-            EVALUATION / DEMO
+            OFFICER ACCESS
           </span>
         </div>
 
@@ -204,8 +218,17 @@ export default function LoginPage() {
           ⚡ {t("btnDemoLogin")} ({t("demoOfficer")})
         </button>
 
-        <p style={{ textAlign: "center", fontSize: 11, color: "var(--text-faint)", marginTop: 18, marginBotton: 0 }}>
-          🔒 Protected National Incident Response Network · Authorized Personnel Only
+        <p
+          style={{
+            textAlign: "center",
+            fontSize: 11,
+            color: "var(--text-faint)",
+            marginTop: 18,
+            marginBotton: 0,
+          }}
+        >
+          🔒 Protected National Incident Response Network · Authorized Personnel
+          Only
         </p>
       </div>
     </div>

@@ -254,7 +254,7 @@ export default function HomePage() {
                     {mostSevere.prediction ? (
                       <>
                         {" "}
-                        · {t("floodProbability")} {(mostSevere.prediction.probability * 100).toFixed(0)}%
+                        · {t("floodProbability")} {(mostSevere.prediction.probability * 100).toFixed(3)}%
                       </>
                     ) : null}
                   </div>
@@ -386,7 +386,7 @@ export default function HomePage() {
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: 12, marginTop: 12, paddingTop: 10, borderTop: "1px solid var(--line-soft)" }}>
                 <span style={{ color: "var(--text-muted)" }}>Pop: {v.population.toLocaleString()}</span>
                 <span className="mono" style={{ fontWeight: 600, color: "var(--accent)" }}>
-                  {t("floodProbability")}: {v.prediction ? `${(v.prediction.probability * 100).toFixed(0)}%` : `${v.riskScore}`}
+                  {t("floodProbability")}: {v.prediction ? `${(v.prediction.probability * 100).toFixed(3)}%` : `${v.riskScore}`}
                 </span>
               </div>
             </Link>

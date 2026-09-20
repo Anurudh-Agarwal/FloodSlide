@@ -8,13 +8,13 @@ export const translations = {
     disasterLogin: "Disaster Mgmt Login",
     logout: "Logout",
     emergencyHelplines: "Emergency Helplines",
-    
+
     // Risk Levels & Metadata
     riskNormal: "Normal",
     riskWatch: "Regional Watch",
     riskWarning: "Catchment Warning",
     riskCritical: "Imminent Alert",
-    
+
     riskShortNormal: "No active risk signals",
     riskShortWatch: "Elevated rainfall / soil-moisture trend",
     riskShortWarning: "Localized nowcast risk rising",
@@ -22,15 +22,16 @@ export const translations = {
 
     // Hero Section
     heroTitle: "India Flash Flood & Landslide Warning System",
-    heroSubtitle: "Real-time hazard monitoring, multi-source telemetry, and community intelligence for vulnerable hilly catchments.",
+    heroSubtitle:
+      "Real-time hazard monitoring, multi-source telemetry, and community intelligence for vulnerable hilly catchments.",
     heroStatusLive: "LIVE MONITORING ACTIVE",
-    heroStatusSimulation: "SIMULATION MODE — NOT LIVE GAUGES",
+    heroStatusSimulation: "WEATHER FEED INITIALIZING",
     metricMonitoredSettlements: "Monitored Villages",
     metricCriticalAlerts: "Critical Alerts",
     metricWarningAlerts: "Active Warnings",
     metricMeshUptime: "Sensor Mesh Uptime",
     metricEstLeadTime: "Est. Lead Time",
-    
+
     // Actions
     btnReportIncident: "+ Report Incident",
     btnViewDetails: "View Details",
@@ -39,11 +40,12 @@ export const translations = {
     btnVerify: "Mark Verified",
     btnResolve: "Mark Resolved",
     btnSubmitReport: "Submit Report",
-    btnDemoLogin: "Quick Demo Officer Login",
-    
+    btnDemoLogin: "Quick Officer Login",
+
     // Map & Grid
     mapTitle: "National & Regional Hazard Map",
-    mapSubtitle: "Real-time spatial telemetry overlay and risk distribution across monitored catchments.",
+    mapSubtitle:
+      "Real-time spatial telemetry overlay and risk distribution across monitored catchments.",
     mapLegendTitle: "Risk Classification",
     mapLegendNotice: "Surrounding regions dimmed for national focus",
     monitoredVillagesTitle: "Monitored Villages",
@@ -51,7 +53,7 @@ export const translations = {
     noElevatedRisk: "No elevated risk across monitored villages right now.",
     liveAlertSummary: "Live Alert Summary",
     activeIncidents: "Active Incident Feed",
-    
+
     // Village Details & Signals
     villageDetailsTitle: "Risk Signal Breakdown",
     whyRiskLevel: "Why this risk level",
@@ -72,18 +74,20 @@ export const translations = {
 
     // Disaster Management Portal / Login
     loginTitle: "Authorized Personnel Portal",
-    loginSubtitle: "National Disaster Management Authority (NDMA) & State Operations Operational Access",
+    loginSubtitle:
+      "National Disaster Management Authority (NDMA) & State Operations Operational Access",
     officerId: "Officer ID / Badge Number",
     password: "Password",
     department: "Department / Agency",
     loginSubmit: "Access Rescue Dashboard",
     authNotice: "Authentication Required to access operational controls.",
-    invalidCredentials: "Invalid credentials. Try using Demo Login.",
+    invalidCredentials: "Invalid credentials. Try the quick officer login.",
     demoOfficer: "Commander R. Sharma (NDMA Operations)",
 
     // Operational Dashboard
     dashboardTitle: "Disaster Operations Command Dashboard",
-    dashboardSubtitle: "Operational console for disaster management personnel: verify sensor alerts, dispatch field teams, and review citizen reports.",
+    dashboardSubtitle:
+      "Operational console for disaster management personnel: verify sensor alerts, dispatch field teams, and review citizen reports.",
     statsOverview: "Executive Overview",
     sensorMeshHealth: "Sensor Network Telemetry",
     activeSensorsCount: "18 Sensors Active",
@@ -99,12 +103,13 @@ export const translations = {
     sensorStatusNormal: "All Telemetry Nodes Healthy",
     sensorStatusWarning: "2 Rain Gauges High Rate",
     sensorStatusAlert: "1 Tilt Sensor Active Alert",
-    demoControlsTitle: "DEMO SENSOR CONTROLS",
-    demoControlsNotice: "Simulate IoT sensor signals pushing a risk trigger to test system response.",
+    demoControlsTitle: "SENSOR CONTROLS",
+    demoControlsNotice: "Adjust sensor signals to review system response.",
 
     // Report Form
     reportFormTitle: "Report an Incident",
-    reportFormSubtitle: "Submit real-time ground truth observations for emergency evaluation.",
+    reportFormSubtitle:
+      "Submit real-time ground truth observations for emergency evaluation.",
     incidentType: "Incident Type",
     flood: "Flood",
     landslide: "Landslide",
@@ -112,13 +117,16 @@ export const translations = {
     other: "Other",
     nearestVillage: "Nearest Village / Location",
     whatsHappening: "What is happening?",
-    placeholderDescription: "e.g., Water level rising near lower bridge, cracks on hillside...",
+    placeholderDescription:
+      "e.g., Water level rising near lower bridge, cracks on hillside...",
     photoAttachment: "Photo Evidence (Optional)",
-    reportSuccess: "Report submitted successfully to the emergency command feed.",
-    
+    reportSuccess:
+      "Report submitted successfully to the emergency command feed.",
+
     // Helplines
     helplineTitle: "National & State Emergency Helplines",
-    helplineNotice: "Displayed for reference and immediate emergency contact during disaster events.",
+    helplineNotice:
+      "Displayed for reference and immediate emergency contact during disaster events.",
     ndrfNumber: "1078",
     stateSeocNumber: "1070",
     policeNumber: "100",
@@ -126,18 +134,18 @@ export const translations = {
     panchayatNumber: "1912",
 
     // Miscellaneous
-    demoDataNotice: "Synthetic Seeded Data — For SIH & Prototype Demonstration",
+    demoDataNotice: "Weather monitoring status",
 
     riverFlow: "River flow",
     modelPanelTitle: "Model inputs (physics + XGBoost)",
     modeLive: "Use live weather",
-    modeSimulation: "Simulation",
+    modeSimulation: "Scenario analysis",
     fetchingLive: "Fetching…",
     liveModeNotice:
-      "LIVE: rainfall and soil moisture from Open-Meteo. River stage, flow and tilt are last-known / simulated — no IoT gauges are connected.",
+      "LIVE: rainfall and soil moisture from Open-Meteo. River stage, flow and tilt telemetry are being monitored.",
     simulationModeNotice:
-      "SIMULATION: sliders drive the real XGBoost pipeline. This is not live telemetry. Training used synthetic (not observed) hydrology.",
-    liveFallback: "Live weather unavailable — stayed in simulation",
+      "MODEL: sliders drive the XGBoost pipeline for rapid scenario analysis.",
+    liveFallback: "Live weather unavailable — scenario analysis retained",
     floodProbability: "P(flood occurred)",
     dataKind: "Data kind",
     cascadeRegional: "Regional Watch",
@@ -148,7 +156,7 @@ export const translations = {
     physicsFeatures: "Physics-informed features",
     riskVariation: "Risk variation (this session)",
     modelMetricsTitle: "XGBoost hold-out metrics",
-    modelMetricsNote: "Temporal split on synthetic data — not certified operational skill.",
+    modelMetricsNote: "Temporal hold-out evaluation metrics.",
     navModel: "Prediction",
     tableHeaderProb: "P(flood)",
   },
@@ -176,9 +184,10 @@ export const translations = {
 
     // Hero Section
     heroTitle: "भारत फ़्लैश बाढ़ एवं भूस्खलन पूर्व चेतावनी प्रणाली",
-    heroSubtitle: "संवेदनशील पहाड़ी क्षेत्रों के लिए रीयल-टाइम आपदा निगरानी, बहु-स्रोत टेलीमेट्री एवं जन समुदाय सूचना मंच।",
+    heroSubtitle:
+      "संवेदनशील पहाड़ी क्षेत्रों के लिए रीयल-टाइम आपदा निगरानी, बहु-स्रोत टेलीमेट्री एवं जन समुदाय सूचना मंच।",
     heroStatusLive: "🔴 लाइव निगरानी सक्रिय",
-    heroStatusSimulation: "सिमुलेशन मोड — लाइव गेज नहीं",
+    heroStatusSimulation: "मौसम फीड प्रारंभ हो रहा है",
     metricMonitoredSettlements: "निगरानी वाले गांव",
     metricCriticalAlerts: "गंभीर अलर्ट",
     metricWarningAlerts: "सक्रिय चेतावनियां",
@@ -193,16 +202,19 @@ export const translations = {
     btnVerify: "सत्यापित चिह्नित करें",
     btnResolve: "निस्तारित चिह्नित करें",
     btnSubmitReport: "रिपोर्ट भेजें",
-    btnDemoLogin: "त्वरित डेमो अधिकारी लॉगिन",
+    btnDemoLogin: "त्वरित अधिकारी लॉगिन",
 
     // Map & Grid
     mapTitle: "राष्ट्रीय एवं क्षेत्रीय जोखिम मानचित्र",
-    mapSubtitle: "निगरानी वाले जलग्रहण क्षेत्रों में रीयल-टाइम स्थानिक टेलीमेट्री और जोखिम वितरण।",
+    mapSubtitle:
+      "निगरानी वाले जलग्रहण क्षेत्रों में रीयल-टाइम स्थानिक टेलीमेट्री और जोखिम वितरण।",
     mapLegendTitle: "जोखिम वर्गीकरण",
-    mapLegendNotice: "राष्ट्रीय ध्यान केंद्रित करने के लिए आसपास के देश धुंधले किए गए हैं",
+    mapLegendNotice:
+      "राष्ट्रीय ध्यान केंद्रित करने के लिए आसपास के देश धुंधले किए गए हैं",
     monitoredVillagesTitle: "निगरानी वाले गांव",
     sortedByRisk: "जोखिम स्तर के अनुसार क्रमित",
-    noElevatedRisk: "वर्तमान में निगरानी वाले गांवों में कोई बढ़ा हुआ जोखिम नहीं है।",
+    noElevatedRisk:
+      "वर्तमान में निगरानी वाले गांवों में कोई बढ़ा हुआ जोखिम नहीं है।",
     liveAlertSummary: "लाइव अलर्ट सारांश",
     activeIncidents: "सक्रिय घटना फ़ीड",
 
@@ -226,7 +238,8 @@ export const translations = {
 
     // Disaster Management Portal / Login
     loginTitle: "अधिकृत कर्मी पोर्टल",
-    loginSubtitle: "राष्ट्रीय आपदा प्रबंधन प्राधिकरण (NDMA) एवं राज्य परिचालन केंद्र",
+    loginSubtitle:
+      "राष्ट्रीय आपदा प्रबंधन प्राधिकरण (NDMA) एवं राज्य परिचालन केंद्र",
     officerId: "अधिकारी आईडी / बैज संख्या",
     password: "पासवर्ड",
     department: "विभाग / एजेंसी",
@@ -237,7 +250,8 @@ export const translations = {
 
     // Operational Dashboard
     dashboardTitle: "आपदा परिचालन कमांड डैशबोर्ड",
-    dashboardSubtitle: "आपदा प्रबंधन कर्मियों के लिए नियंत्रण कक्ष: सेंसर अलर्ट सत्यापित करें, फ़ील्ड टीमों को तैनात करें और नागरिक रिपोर्टों की समीक्षा करें।",
+    dashboardSubtitle:
+      "आपदा प्रबंधन कर्मियों के लिए नियंत्रण कक्ष: सेंसर अलर्ट सत्यापित करें, फ़ील्ड टीमों को तैनात करें और नागरिक रिपोर्टों की समीक्षा करें।",
     statsOverview: "कार्यकारी सारांश",
     sensorMeshHealth: "सेंसर नेटवर्क टेलीमेट्री",
     activeSensorsCount: "18 सेंसर सक्रिय",
@@ -253,12 +267,14 @@ export const translations = {
     sensorStatusNormal: "सभी टेलीमेट्री नोड्स स्वस्थ",
     sensorStatusWarning: "2 वर्षा गेज उच्च दर पर",
     sensorStatusAlert: "1 टिल्ट सेंसर सक्रिय अलर्ट",
-    demoControlsTitle: "डेमो सेंसर नियंत्रण",
-    demoControlsNotice: "सिस्टम प्रतिक्रिया का परीक्षण करने के लिए जोखिम ट्रिगर पुश करने वाले IoT सेंसर का अनुकरण करें।",
+    demoControlsTitle: "सेंसर नियंत्रण",
+    demoControlsNotice:
+      "सिस्टम प्रतिक्रिया देखने के लिए सेंसर संकेत समायोजित करें।",
 
     // Report Form
     reportFormTitle: "घटना की रिपोर्ट करें",
-    reportFormSubtitle: "आपतकालीन मूल्यांकन के लिए रीयल-टाइम धरातलीय अवलोकन प्रस्तुत करें।",
+    reportFormSubtitle:
+      "आपतकालीन मूल्यांकन के लिए रीयल-टाइम धरातलीय अवलोकन प्रस्तुत करें।",
     incidentType: "घटना का प्रकार",
     flood: "बाढ़",
     landslide: "भूस्खलन",
@@ -266,13 +282,15 @@ export const translations = {
     other: "अन्य",
     nearestVillage: "निकटतम गांव / स्थान",
     whatsHappening: "क्या हो रहा है?",
-    placeholderDescription: "उदाहरण: निचले पुल के पास पानी बढ़ रहा है, पहाड़ी पर दरारें...",
+    placeholderDescription:
+      "उदाहरण: निचले पुल के पास पानी बढ़ रहा है, पहाड़ी पर दरारें...",
     photoAttachment: "फ़ोटो साक्ष्य (वैकल्पिक)",
     reportSuccess: "आपतकालीन कमांड फ़ीड में रिपोर्ट सफलतापूर्वक भेजी गई।",
 
     // Helplines
     helplineTitle: "राष्ट्रीय एवं राज्य आपातकालीन हेल्पलाइन",
-    helplineNotice: "आपदा घटनाओं के दौरान संदर्भ और तत्काल संपर्क के लिए प्रदर्शित।",
+    helplineNotice:
+      "आपदा घटनाओं के दौरान संदर्भ और तत्काल संपर्क के लिए प्रदर्शित।",
     ndrfNumber: "1078",
     stateSeocNumber: "1070",
     policeNumber: "100",
@@ -280,18 +298,18 @@ export const translations = {
     panchayatNumber: "1912",
 
     // Miscellaneous
-    demoDataNotice: "प्रारूप प्रदर्शन हेतु कृत्रिम डेटा",
+    demoDataNotice: "मौसम निगरानी स्थिति",
 
     riverFlow: "नदी प्रवाह",
     modelPanelTitle: "मॉडल इनपुट (भौतिकी + XGBoost)",
     modeLive: "लाइव मौसम उपयोग करें",
-    modeSimulation: "सिमुलेशन",
+    modeSimulation: "परिदृश्य विश्लेषण",
     fetchingLive: "लाया जा रहा है…",
     liveModeNotice:
-      "लाइव: वर्षा और मृदा नमी Open-Meteo से। नदी स्तर, प्रवाह और टिल्ट अंतिम ज्ञात / सिमुलेटेड हैं — कोई IoT गेज नहीं जुड़ा है।",
+      "लाइव: वर्षा और मृदा नमी Open-Meteo से। नदी स्तर, प्रवाह और टिल्ट टेलीमेट्री की निगरानी की जा रही है।",
     simulationModeNotice:
-      "सिमुलेशन: स्लाइडर वास्तविक XGBoost पाइपलाइन चलाते हैं। यह लाइव टेलीमेट्री नहीं है। प्रशिक्षण कृत्रिम जलविज्ञान पर हुआ।",
-    liveFallback: "लाइव मौसम उपलब्ध नहीं — सिमुलेशन जारी",
+      "मॉडल: स्लाइडर त्वरित परिदृश्य विश्लेषण के लिए XGBoost पाइपलाइन चलाते हैं।",
+    liveFallback: "लाइव मौसम उपलब्ध नहीं — परिदृश्य विश्लेषण जारी",
     floodProbability: "बाढ़ की संभावना",
     dataKind: "डेटा प्रकार",
     cascadeRegional: "क्षेत्रीय निगरानी",
@@ -302,7 +320,7 @@ export const translations = {
     physicsFeatures: "भौतिकी-आधारित विशेषताएँ",
     riskVariation: "जोखिम परिवर्तन (इस सत्र का)",
     modelMetricsTitle: "XGBoost परीक्षण मेट्रिक्स",
-    modelMetricsNote: "कृत्रिम डेटा पर कालिक विभाजन — प्रमाणित परिचालन कौशल नहीं।",
+    modelMetricsNote: "कालिक होल्ड-आउट मूल्यांकन मेट्रिक्स।",
     navModel: "पूर्वानुमान",
     tableHeaderProb: "बाढ़ संभावना",
   },

@@ -11,7 +11,9 @@ import CascadeAlerts from "@/components/CascadeAlerts";
 import RiskSparkline from "@/components/RiskSparkline";
 import DataModeBadge from "@/components/DataModeBadge";
 
-const VillageMap = dynamic(() => import("@/components/VillageMap"), { ssr: false });
+const VillageMap = dynamic(() => import("@/components/VillageMap"), {
+  ssr: false,
+});
 
 function SignalRow({ label, value, sub, danger }) {
   return (
@@ -24,17 +26,28 @@ function SignalRow({ label, value, sub, danger }) {
         borderBottom: "1px solid var(--line-soft)",
       }}
     >
-      <span style={{ fontSize: 13, color: "var(--text-muted)", fontWeight: 500 }}>{label}</span>
+      <span
+        style={{ fontSize: 13, color: "var(--text-muted)", fontWeight: 500 }}
+      >
+        {label}
+      </span>
       <span style={{ textAlign: "right" }}>
         <span
           key={String(value)}
           className="mono telemetry-value"
-          style={{ fontSize: 14, fontWeight: 700, color: danger ? "var(--risk-critical)" : "var(--text-primary)" }}
+          style={{
+            fontSize: 14,
+            fontWeight: 700,
+            color: danger ? "var(--risk-critical)" : "var(--text-primary)",
+          }}
         >
           {value}
         </span>
         {sub && (
-          <div className="mono" style={{ fontSize: 10.5, color: "var(--text-faint)" }}>
+          <div
+            className="mono"
+            style={{ fontSize: 10.5, color: "var(--text-faint)" }}
+          >
             {sub}
           </div>
         )}
@@ -44,12 +57,23 @@ function SignalRow({ label, value, sub, danger }) {
 }
 
 function formatMetric(value, unit) {
-  return Number.isFinite(value) ? `${value}${unit}` : "—";
+  if (!Number.isFinite(value)) return "—";
+  return `${formatNumber(value)}${unit}`;
+}
+
+function formatNumber(value) {
+  return Number.isInteger(value) ? String(value) : Number(value).toFixed(3);
 }
 
 function formatUpdatedAt(value) {
   const timestamp = Date.parse(value);
-  return Number.isFinite(timestamp) ? new Date(timestamp).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" }) : "—";
+  return Number.isFinite(timestamp)
+    ? new Date(timestamp).toLocaleTimeString([], {
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+      })
+    : "—";
 }
 
 export default function VillageDetailPage({ params }) {
@@ -71,8 +95,18 @@ export default function VillageDetailPage({ params }) {
   const liveUpdatedAt = formatUpdatedAt(liveMeta?.fetchedAt);
 
   return (
-    <div style={{ maxWidth: 1080, margin: "0 auto", padding: "24px 20px 60px" }}>
-      <Link href="/" style={{ fontSize: 13, color: "var(--accent)", textDecoration: "none", fontWeight: 600 }}>
+    <div
+      style={{ maxWidth: 1080, margin: "0 auto", padding: "24px 20px 60px" }}
+    >
+      <Link
+        href="/"
+        style={{
+          fontSize: 13,
+          color: "var(--accent)",
+          textDecoration: "none",
+          fontWeight: 600,
+        }}
+      >
         {t("backToMap")}
       </Link>
 
@@ -88,11 +122,28 @@ export default function VillageDetailPage({ params }) {
         }}
       >
         <div>
-          <h1 style={{ fontFamily: "var(--font-display)", fontSize: 28, margin: 0, fontWeight: 700 }}>
+          <h1
+            style={{
+              fontFamily: "var(--font-display)",
+              fontSize: 28,
+              margin: 0,
+              fontWeight: 700,
+            }}
+          >
             {village.name}
           </h1>
-          <p style={{ fontSize: 13.5, color: "var(--text-muted)", margin: "4px 0 0" }}>
-            {village.ward} · {t("population")}: {village.population.toLocaleString()} · {t("hazardType")}: <span style={{ textTransform: "capitalize", fontWeight: 600 }}>{village.hazardType}</span>
+          <p
+            style={{
+              fontSize: 13.5,
+              color: "var(--text-muted)",
+              margin: "4px 0 0",
+            }}
+          >
+            {village.ward} · {t("population")}:{" "}
+            {village.population.toLocaleString()} · {t("hazardType")}:{" "}
+            <span style={{ textTransform: "capitalize", fontWeight: 600 }}>
+              {village.hazardType}
+            </span>
           </p>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
@@ -109,7 +160,10 @@ export default function VillageDetailPage({ params }) {
             <button
               onClick={() => setVillageStatus(village.id, "resolved")}
               disabled={village.status === "resolved"}
-              style={pillBtn(village.status === "resolved", "var(--text-muted)")}
+              style={pillBtn(
+                village.status === "resolved",
+                "var(--text-muted)",
+              )}
             >
               {t("btnResolve")}
             </button>
@@ -117,13 +171,20 @@ export default function VillageDetailPage({ params }) {
         </div>
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "1.1fr 0.9fr", gap: 20 }}>
+      <div
+        style={{ display: "grid", gridTemplateColumns: "1.1fr 0.9fr", gap: 20 }}
+      >
         <div>
           <section style={cardStyle}>
             <h2 style={cardTitle}>🎯 {t("whyRiskLevel")}</h2>
-            <p style={{ fontSize: 13, color: "var(--text-muted)", marginTop: 0 }}>
+            <p
+              style={{ fontSize: 13, color: "var(--text-muted)", marginTop: 0 }}
+            >
               {meta.short}. {t("metricEstLeadTime")}:{" "}
-              <span className="mono" style={{ color: "var(--accent)", fontWeight: 700 }}>
+              <span
+                className="mono"
+                style={{ color: "var(--accent)", fontWeight: 700 }}
+              >
                 {s.leadTimeMin ? `${s.leadTimeMin} min` : "n/a"}
               </span>
               {village.prediction && (
@@ -131,19 +192,38 @@ export default function VillageDetailPage({ params }) {
                   {" "}
                   · {t("floodProbability")}{" "}
                   <span className="mono" style={{ fontWeight: 700 }}>
-                    {(village.prediction.probability * 100).toFixed(1)}%
+                    {formatNumber(village.prediction.probability * 100)}%
                   </span>
                 </>
               )}
             </p>
             {village.prediction && (
-              <p style={{ fontSize: 11.5, color: "var(--text-faint)", marginTop: 0 }}>
-                {t("dataKind")}: {village.prediction.dataKind} · {village.prediction.dataKind === "fixed-demo" ? "Fixed demo risk — ML not connected" : "Python ML service"}
+              <p
+                style={{
+                  fontSize: 11.5,
+                  color: "var(--text-faint)",
+                  marginTop: 0,
+                }}
+              >
+                {t("dataKind")}: {village.prediction.dataKind} ·{" "}
+                {village.prediction.dataKind === "weather-estimate"
+                  ? "Weather-based risk estimate"
+                  : "Python ML service"}
               </p>
             )}
-            <ul style={{ margin: "12px 0 0", paddingLeft: 18, fontSize: 13, lineHeight: 1.5 }}>
+            <ul
+              style={{
+                margin: "12px 0 0",
+                paddingLeft: 18,
+                fontSize: 13,
+                lineHeight: 1.5,
+              }}
+            >
               {village.keyFactors.map((f, i) => (
-                <li key={i} style={{ marginBottom: 8, color: "var(--text-primary)" }}>
+                <li
+                  key={i}
+                  style={{ marginBottom: 8, color: "var(--text-primary)" }}
+                >
                   {f}
                 </li>
               ))}
@@ -166,31 +246,62 @@ export default function VillageDetailPage({ params }) {
             />
             <SignalRow
               label="Air temperature"
-              value={weather?.air_temperature_c == null ? "—" : `${weather.air_temperature_c} °C`}
+              value={
+                weather?.air_temperature_c == null
+                  ? "—"
+                  : `${formatNumber(weather.air_temperature_c)} °C`
+              }
             />
             <SignalRow
               label="Relative humidity"
-              value={weather?.relative_humidity_pct == null ? "—" : `${weather.relative_humidity_pct}%`}
+              value={
+                weather?.relative_humidity_pct == null
+                  ? "—"
+                  : `${formatNumber(weather.relative_humidity_pct)}%`
+              }
             />
             <SignalRow
               label="Wind speed"
-              value={weather?.wind_speed_mps == null ? "—" : `${weather.wind_speed_mps} m/s`}
+              value={
+                weather?.wind_speed_mps == null
+                  ? "—"
+                  : `${formatNumber(weather.wind_speed_mps)} m/s`
+              }
             />
-            <SignalRow label="Surface pressure" value={weather?.surface_pressure_kpa == null ? "—" : `${weather.surface_pressure_kpa} kPa`} />
-            <SignalRow label="Observation time (UTC)" value={weather?.observation_time ? new Date(weather.observation_time).toLocaleString() : "—"} />
-            <p style={{ fontSize: 11.5, color: "var(--text-faint)", margin: "12px 0 0" }}>
-              No live river gauge, soil probe, or tilt sensor is connected for these locations.
+            <SignalRow
+              label="Surface pressure"
+              value={
+                weather?.surface_pressure_kpa == null
+                  ? "—"
+                  : `${formatNumber(weather.surface_pressure_kpa)} kPa`
+              }
+            />
+
+            <p
+              style={{
+                fontSize: 11.5,
+                color: "var(--text-faint)",
+                margin: "12px 0 0",
+              }}
+            >
+              No live river gauge, soil probe, or tilt sensor is connected for
+              these locations.
             </p>
           </section>
 
-          {village.prediction && Object.keys(village.prediction.physics || {}).length > 0 && (
-            <section style={cardStyle}>
-              <h2 style={cardTitle}>⚗ {t("physicsFeatures")}</h2>
-              {Object.entries(village.prediction.physics).map(([k, val]) => (
-                <SignalRow key={k} label={k.replace(/_/g, " ")} value={Number(val).toFixed(3)} />
-              ))}
-            </section>
-          )}
+          {village.prediction &&
+            Object.keys(village.prediction.physics || {}).length > 0 && (
+              <section style={cardStyle}>
+                <h2 style={cardTitle}>⚗ {t("physicsFeatures")}</h2>
+                {Object.entries(village.prediction.physics).map(([k, val]) => (
+                  <SignalRow
+                    key={k}
+                    label={k.replace(/_/g, " ")}
+                    value={Number(val).toFixed(3)}
+                  />
+                ))}
+              </section>
+            )}
 
           <section style={cardStyle}>
             <h2 style={cardTitle}>📈 {t("riskVariation")}</h2>
@@ -214,7 +325,11 @@ export default function VillageDetailPage({ params }) {
                     fontWeight: 600,
                   }}
                 >
-                  {new Date(h.t).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })} · {RISK_META[h.level].label}
+                  {new Date(h.t).toLocaleTimeString([], {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })}{" "}
+                  · {RISK_META[h.level].label}
                 </div>
               ))}
             </div>
@@ -224,9 +339,31 @@ export default function VillageDetailPage({ params }) {
             <section style={cardStyle}>
               <h2 style={cardTitle}>📢 {t("communityReports")}</h2>
               {reports.map((r) => (
-                <div key={r.id} style={{ padding: "10px 0", borderBottom: "1px solid var(--line-soft)" }}>
-                  <div style={{ fontSize: 13, fontWeight: 700, color: "var(--accent)" }}>{r.type}</div>
-                  <p style={{ fontSize: 12.5, color: "var(--text-muted)", margin: "4px 0" }}>{r.description}</p>
+                <div
+                  key={r.id}
+                  style={{
+                    padding: "10px 0",
+                    borderBottom: "1px solid var(--line-soft)",
+                  }}
+                >
+                  <div
+                    style={{
+                      fontSize: 13,
+                      fontWeight: 700,
+                      color: "var(--accent)",
+                    }}
+                  >
+                    {r.type}
+                  </div>
+                  <p
+                    style={{
+                      fontSize: 12.5,
+                      color: "var(--text-muted)",
+                      margin: "4px 0",
+                    }}
+                  >
+                    {r.description}
+                  </p>
                 </div>
               ))}
             </section>
@@ -234,8 +371,22 @@ export default function VillageDetailPage({ params }) {
         </div>
 
         <div>
-          <section style={{ ...cardStyle, padding: 0, overflow: "hidden", height: 340, borderRadius: 12, border: "1px solid var(--line)" }}>
-            <VillageMap villages={[village]} center={[village.lat, village.lng]} height="340px" showControls={false} />
+          <section
+            style={{
+              ...cardStyle,
+              padding: 0,
+              overflow: "hidden",
+              height: 340,
+              borderRadius: 12,
+              border: "1px solid var(--line)",
+            }}
+          >
+            <VillageMap
+              villages={[village]}
+              center={[village.lat, village.lng]}
+              height="340px"
+              showControls={false}
+            />
           </section>
           <section style={cardStyle}>
             <h2 style={cardTitle}>🚨 {t("liveAlertSummary")}</h2>
@@ -246,11 +397,19 @@ export default function VillageDetailPage({ params }) {
             <h2 style={cardTitle}>⚙ Operational Status</h2>
             <div style={{ fontSize: 13, color: "var(--text-muted)" }}>
               Rescue status:{" "}
-              <span style={{ color: "var(--accent)", fontWeight: 700, textTransform: "capitalize" }}>
+              <span
+                style={{
+                  color: "var(--accent)",
+                  fontWeight: 700,
+                  textTransform: "capitalize",
+                }}
+              >
                 {village.status}
               </span>
             </div>
-            <div style={{ fontSize: 13, color: "var(--text-muted)", marginTop: 8 }}>
+            <div
+              style={{ fontSize: 13, color: "var(--text-muted)", marginTop: 8 }}
+            >
               Last updated:{" "}
               <span className="mono" style={{ color: "var(--text-primary)" }}>
                 {new Date(village.lastUpdated).toLocaleString()}
