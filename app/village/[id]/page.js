@@ -149,25 +149,6 @@ export default function VillageDetailPage({ params }) {
         <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
           <DataModeBadge mode={dataMode} liveOk={!!liveMeta?.ok} />
           <RiskBadge level={village.riskLevel} />
-          <div style={{ display: "flex", gap: 6 }}>
-            <button
-              onClick={() => setVillageStatus(village.id, "verified")}
-              disabled={village.status === "verified"}
-              style={pillBtn(village.status === "verified", "var(--accent)")}
-            >
-              {t("btnVerify")}
-            </button>
-            <button
-              onClick={() => setVillageStatus(village.id, "resolved")}
-              disabled={village.status === "resolved"}
-              style={pillBtn(
-                village.status === "resolved",
-                "var(--text-muted)",
-              )}
-            >
-              {t("btnResolve")}
-            </button>
-          </div>
         </div>
       </div>
 

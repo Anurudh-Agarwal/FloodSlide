@@ -39,16 +39,24 @@ export default function HomePage() {
   const liveMeta = useStore((s) => s.liveMeta);
 
   const [reportOpen, setReportOpen] = useState(false);
-  const [mapFocus, setMapFocus] = useState({ center: [30.365, 78.91], zoom: 12 });
+  const [mapFocus, setMapFocus] = useState({
+    center: [30.365, 78.91],
+    zoom: 12,
+  });
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedRiskFilter, setSelectedRiskFilter] = useState("all");
 
-  const criticalVillages = villages.filter((v) => v.riskLevel === "critical" || v.riskLevel === "warning");
+  const criticalVillages = villages.filter(
+    (v) => v.riskLevel === "critical" || v.riskLevel === "warning",
+  );
   const mostSevere = useStore((s) => s.getMostSevereVillage());
 
   const filteredVillages = villages.filter((v) => {
-    const matchesSearch = v.name.toLowerCase().includes(searchQuery.toLowerCase()) || v.ward.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesRisk = selectedRiskFilter === "all" || v.riskLevel === selectedRiskFilter;
+    const matchesSearch =
+      v.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      v.ward.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesRisk =
+      selectedRiskFilter === "all" || v.riskLevel === selectedRiskFilter;
     return matchesSearch && matchesRisk;
   });
 
@@ -61,7 +69,9 @@ export default function HomePage() {
   };
 
   return (
-    <div style={{ minHeight: "calc(100vh - 65px)", background: "var(--bg-deep)" }}>
+    <div
+      style={{ minHeight: "calc(100vh - 65px)", background: "var(--bg-deep)" }}
+    >
       {/* Top Urgent Severity Banner if critical alert active */}
       <SeverityBanner />
 
@@ -70,16 +80,55 @@ export default function HomePage() {
         style={{
           padding: "36px 24px 28px",
           borderBottom: "1px solid var(--line)",
-          background: "linear-gradient(180deg, rgba(79, 209, 197, 0.04) 0%, transparent 100%)",
+          background:
+            "linear-gradient(180deg, rgba(79, 209, 197, 0.04) 0%, transparent 100%)",
         }}
       >
         <div style={{ maxWidth: 1300, margin: "0 auto" }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: 20 }}>
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "flex-start",
+              flexWrap: "wrap",
+              gap: 20,
+            }}
+          >
             <div style={{ maxWidth: 720 }}>
-              <div style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "4px 10px", borderRadius: 999, background: "rgba(79, 209, 197, 0.12)", border: "1px solid rgba(79, 209, 197, 0.3)", color: "var(--accent)", fontSize: 11.5, fontWeight: 600, marginBottom: 12 }}>
-                <span style={{ width: 7, height: 7, borderRadius: "50%", background: dataMode === "live" && liveMeta?.ok ? "var(--accent)" : "var(--risk-warning)" }} />
-                {dataMode === "live" && liveMeta?.ok ? t("heroStatusLive") : t("heroStatusSimulation")}
-                <DataModeBadge mode={dataMode} liveOk={!!liveMeta?.ok} compact />
+              <div
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 8,
+                  padding: "4px 10px",
+                  borderRadius: 999,
+                  background: "rgba(79, 209, 197, 0.12)",
+                  border: "1px solid rgba(79, 209, 197, 0.3)",
+                  color: "var(--accent)",
+                  fontSize: 11.5,
+                  fontWeight: 600,
+                  marginBottom: 12,
+                }}
+              >
+                <span
+                  style={{
+                    width: 7,
+                    height: 7,
+                    borderRadius: "50%",
+                    background:
+                      dataMode === "live" && liveMeta?.ok
+                        ? "var(--accent)"
+                        : "var(--risk-warning)",
+                  }}
+                />
+                {dataMode === "live" && liveMeta?.ok
+                  ? t("heroStatusLive")
+                  : t("heroStatusSimulation")}
+                <DataModeBadge
+                  mode={dataMode}
+                  liveOk={!!liveMeta?.ok}
+                  compact
+                />
               </div>
               <h1
                 style={{
@@ -94,7 +143,15 @@ export default function HomePage() {
               >
                 {t("heroTitle")}
               </h1>
-              <p style={{ fontSize: 14.5, color: "var(--text-muted)", margin: 0, lineHeight: 1.5, maxWidth: 640 }}>
+              <p
+                style={{
+                  fontSize: 14.5,
+                  color: "var(--text-muted)",
+                  margin: 0,
+                  lineHeight: 1.5,
+                  maxWidth: 640,
+                }}
+              >
                 {t("heroSubtitle")}
               </p>
             </div>
@@ -149,36 +206,47 @@ export default function HomePage() {
             }}
           >
             <div style={metricBoxStyle}>
-              <span style={metricLabelStyle}>{t("metricMonitoredSettlements")}</span>
-              <span className="mono" style={metricValueStyle}>{villages.length}</span>
+              <span style={metricLabelStyle}>
+                {t("metricMonitoredSettlements")}
+              </span>
+              <span className="mono" style={metricValueStyle}>
+                {villages.length}
+              </span>
             </div>
             <div style={metricBoxStyle}>
               <span style={metricLabelStyle}>{t("metricCriticalAlerts")}</span>
-              <span className="mono" style={{ ...metricValueStyle, color: "var(--risk-critical)" }}>
+              <span
+                className="mono"
+                style={{ ...metricValueStyle, color: "var(--risk-critical)" }}
+              >
                 {villages.filter((v) => v.riskLevel === "critical").length}
               </span>
             </div>
             <div style={metricBoxStyle}>
               <span style={metricLabelStyle}>{t("metricWarningAlerts")}</span>
-              <span className="mono" style={{ ...metricValueStyle, color: "var(--risk-warning)" }}>
+              <span
+                className="mono"
+                style={{ ...metricValueStyle, color: "var(--risk-warning)" }}
+              >
                 {villages.filter((v) => v.riskLevel === "warning").length}
               </span>
-            </div>
-            <div style={metricBoxStyle}>
-              <span style={metricLabelStyle}>{t("metricMeshUptime")}</span>
-              <span className="mono" style={{ ...metricValueStyle, color: "var(--risk-normal)" }}>99.4%</span>
-            </div>
-            <div style={metricBoxStyle}>
-              <span style={metricLabelStyle}>{t("metricEstLeadTime")}</span>
-              <span className="mono" style={metricValueStyle}>35 mins</span>
             </div>
           </div>
         </div>
       </section>
 
       {/* Main Grid: Resized Map + Alert Summary Panel */}
-      <section style={{ maxWidth: 1300, margin: "0 auto", padding: "24px 20px" }}>
-        <div style={{ display: "grid", gridTemplateColumns: "1.7fr 1fr", gap: 20, alignItems: "start" }}>
+      <section
+        style={{ maxWidth: 1300, margin: "0 auto", padding: "24px 20px" }}
+      >
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "1.7fr 1fr",
+            gap: 20,
+            alignItems: "start",
+          }}
+        >
           {/* Left: Resized Map Container */}
           <div
             style={{
@@ -200,10 +268,23 @@ export default function HomePage() {
               }}
             >
               <div>
-                <h2 style={{ fontFamily: "var(--font-display)", fontSize: 16, margin: 0, fontWeight: 700 }}>
+                <h2
+                  style={{
+                    fontFamily: "var(--font-display)",
+                    fontSize: 16,
+                    margin: 0,
+                    fontWeight: 700,
+                  }}
+                >
                   🗺️ {t("mapTitle")}
                 </h2>
-                <p style={{ fontSize: 11.5, color: "var(--text-faint)", margin: "2px 0 0" }}>
+                <p
+                  style={{
+                    fontSize: 11.5,
+                    color: "var(--text-faint)",
+                    margin: "2px 0 0",
+                  }}
+                >
                   {t("mapSubtitle")}
                 </p>
               </div>
@@ -231,7 +312,14 @@ export default function HomePage() {
                 padding: 18,
               }}
             >
-              <h3 style={{ fontFamily: "var(--font-display)", fontSize: 15, margin: "0 0 12px", fontWeight: 700 }}>
+              <h3
+                style={{
+                  fontFamily: "var(--font-display)",
+                  fontSize: 15,
+                  margin: "0 0 12px",
+                  fontWeight: 700,
+                }}
+              >
                 ⚡ {t("liveAlertSummary")}
               </h3>
 
@@ -245,20 +333,43 @@ export default function HomePage() {
                     marginBottom: 12,
                   }}
                 >
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
-                    <span style={{ fontSize: 14, fontWeight: 700 }}>{mostSevere.name}</span>
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                      marginBottom: 6,
+                    }}
+                  >
+                    <span style={{ fontSize: 14, fontWeight: 700 }}>
+                      {mostSevere.name}
+                    </span>
                     <RiskBadge level={mostSevere.riskLevel} size="sm" />
                   </div>
-                  <div style={{ fontSize: 12, color: "var(--text-muted)", marginBottom: 8 }}>
-                    {mostSevere.ward} · {t("population")} {mostSevere.population.toLocaleString()}
+                  <div
+                    style={{
+                      fontSize: 12,
+                      color: "var(--text-muted)",
+                      marginBottom: 8,
+                    }}
+                  >
+                    {mostSevere.ward} · {t("population")}{" "}
+                    {mostSevere.population.toLocaleString()}
                     {mostSevere.prediction ? (
                       <>
                         {" "}
-                        · {t("floodProbability")} {(mostSevere.prediction.probability * 100).toFixed(3)}%
+                        · {t("floodProbability")}{" "}
+                        {(mostSevere.prediction.probability * 100).toFixed(3)}%
                       </>
                     ) : null}
                   </div>
-                  <div style={{ fontSize: 12, color: "var(--text-primary)", marginBottom: 10 }}>
+                  <div
+                    style={{
+                      fontSize: 12,
+                      color: "var(--text-primary)",
+                      marginBottom: 10,
+                    }}
+                  >
                     {RISK_META[mostSevere.riskLevel].short}
                   </div>
                   <CascadeAlerts riskLevel={mostSevere.riskLevel} t={t} />
@@ -300,8 +411,18 @@ export default function HomePage() {
                     }}
                   >
                     <div>
-                      <div style={{ fontSize: 13, fontWeight: 600, color: "var(--text-primary)" }}>{v.name}</div>
-                      <div style={{ fontSize: 11, color: "var(--text-faint)" }}>{v.hazardType} hazard</div>
+                      <div
+                        style={{
+                          fontSize: 13,
+                          fontWeight: 600,
+                          color: "var(--text-primary)",
+                        }}
+                      >
+                        {v.name}
+                      </div>
+                      <div style={{ fontSize: 11, color: "var(--text-faint)" }}>
+                        {v.hazardType} hazard
+                      </div>
                     </div>
                     <RiskBadge level={v.riskLevel} size="sm" />
                   </Link>
@@ -315,9 +436,27 @@ export default function HomePage() {
       </section>
 
       {/* Monitored Villages Searchable Grid */}
-      <section style={{ maxWidth: 1300, margin: "0 auto", padding: "0 20px 48px" }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 12, marginBottom: 16 }}>
-          <h2 style={{ fontFamily: "var(--font-display)", fontSize: 18, margin: 0, fontWeight: 700 }}>
+      <section
+        style={{ maxWidth: 1300, margin: "0 auto", padding: "0 20px 48px" }}
+      >
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            flexWrap: "wrap",
+            gap: 12,
+            marginBottom: 16,
+          }}
+        >
+          <h2
+            style={{
+              fontFamily: "var(--font-display)",
+              fontSize: 18,
+              margin: 0,
+              fontWeight: 700,
+            }}
+          >
             🏘️ {t("monitoredVillagesTitle")} ({filteredVillages.length})
           </h2>
 
@@ -360,7 +499,13 @@ export default function HomePage() {
           </div>
         </div>
 
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 14 }}>
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))",
+            gap: 14,
+          }}
+        >
           {filteredVillages.map((v) => (
             <Link
               key={v.id}
@@ -375,18 +520,60 @@ export default function HomePage() {
                 transition: "transform 140ms ease, border-color 140ms ease",
               }}
             >
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 8 }}>
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "flex-start",
+                  marginBottom: 8,
+                }}
+              >
                 <div>
-                  <h3 style={{ fontSize: 15, fontWeight: 700, margin: 0, color: "var(--text-primary)" }}>{v.name}</h3>
-                  <div style={{ fontSize: 11.5, color: "var(--text-faint)", marginTop: 2 }}>{v.ward}</div>
+                  <h3
+                    style={{
+                      fontSize: 15,
+                      fontWeight: 700,
+                      margin: 0,
+                      color: "var(--text-primary)",
+                    }}
+                  >
+                    {v.name}
+                  </h3>
+                  <div
+                    style={{
+                      fontSize: 11.5,
+                      color: "var(--text-faint)",
+                      marginTop: 2,
+                    }}
+                  >
+                    {v.ward}
+                  </div>
                 </div>
                 <RiskBadge level={v.riskLevel} size="sm" />
               </div>
 
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: 12, marginTop: 12, paddingTop: 10, borderTop: "1px solid var(--line-soft)" }}>
-                <span style={{ color: "var(--text-muted)" }}>Pop: {v.population.toLocaleString()}</span>
-                <span className="mono" style={{ fontWeight: 600, color: "var(--accent)" }}>
-                  {t("floodProbability")}: {v.prediction ? `${(v.prediction.probability * 100).toFixed(3)}%` : `${v.riskScore}`}
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  fontSize: 12,
+                  marginTop: 12,
+                  paddingTop: 10,
+                  borderTop: "1px solid var(--line-soft)",
+                }}
+              >
+                <span style={{ color: "var(--text-muted)" }}>
+                  Pop: {v.population.toLocaleString()}
+                </span>
+                <span
+                  className="mono"
+                  style={{ fontWeight: 600, color: "var(--accent)" }}
+                >
+                  {t("floodProbability")}:{" "}
+                  {v.prediction
+                    ? `${(v.prediction.probability * 100).toFixed(3)}%`
+                    : `${v.riskScore}`}
                 </span>
               </div>
             </Link>
@@ -395,7 +582,9 @@ export default function HomePage() {
       </section>
 
       {/* Incident Report Modal */}
-      {reportOpen && <ReportForm villages={villages} onClose={() => setReportOpen(false)} />}
+      {reportOpen && (
+        <ReportForm villages={villages} onClose={() => setReportOpen(false)} />
+      )}
     </div>
   );
 }
